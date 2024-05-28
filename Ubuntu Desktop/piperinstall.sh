@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # Piper is a GTK+ application to configure gaming mice and keyboard. More info can be found here: https://github.com/libratbag/piper
 sudo add-apt-repository universe
 sudo apt update

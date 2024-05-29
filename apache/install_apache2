@@ -1,6 +1,6 @@
 #!/bin/bash
 # Install Apache if it is not already installed
-if [ ! -f /user/sbin/apache2 ]; then
+if [ ! -f /usr/sbin/apache2 ]; then
     sudo apt install -y apache2
     sudo apt install -y libapache2-mod-php8.1
     sudo a2enmod php8.1

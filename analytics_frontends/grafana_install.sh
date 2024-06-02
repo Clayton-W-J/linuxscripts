@@ -1,3 +1,5 @@
+#!/bin/bash
+
 #Install the signing key
 wget -q -O /usr/share/keyrings/grafana.key https://apt.grafana.com/gpg.key
 

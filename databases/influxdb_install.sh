@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # We need a few things for this
 apt install gpg apt-transport-https -y
 

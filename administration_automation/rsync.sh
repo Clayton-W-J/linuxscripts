@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Defining source and destination
-source="/home/cj/testfile"
-destination="/home/cj/testdir"
+source="/path/to/source"
+destination="/path/to/destination/"
 log_file="/var/log/rsync_backup.log"
 
 # Check if the log file exists, create it if not

@@ -1,9 +1,18 @@
 #!/bin/bash
 
 # Defining source and destination
-source="/home/cj/linuxscripts"
-destination="/home/cj/testdir/"
+source="/home/cj/testfile"
+destination="/home/cj/testdir"
 log_file="/var/log/rsync_backup.log"
+
+# Check if the log file exists, create it if not
+if [ ! -e "$log_file" ]; then
+    touch "$log_file"
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to create log file $log_file."
+        exit 1
+    fi
+fi
 
 if [ ! -e "$source" ]; then
     echo "Error: Source path $source does not exist."
@@ -23,10 +32,17 @@ if [ ! -d "$destination" ]; then
     fi
 fi
 
+# Function to log dashes
+log_dashes() {
+    echo "--------------------------------------------------------------------------------" >> "$log_file"
+}
+
 # rsync the source to the destination and log the output
+log_dashes
 echo "Starting rsync from $source to $destination at $(date)" | tee -a "$log_file"
 sudo rsync -avzP "$source" "$destination" >> "$log_file" 2>&1
 rsync_status=$?
+echo "--------------------------------------------------------------------------------" >> "$log_file"
 
 # Check if rsync was successful
 if [ $rsync_status -ne 0 ]; then

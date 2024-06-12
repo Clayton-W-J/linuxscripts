@@ -1,3 +1,5 @@
+# This script is intended to be a robust solution for using and automating rsync backups / file transfers. All rsync stdout will be found at /var/log/rsync_backup.log
+
 #!/bin/bash
 
 # Defining source and destination

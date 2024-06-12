@@ -7,8 +7,8 @@ if [ ! -f /usr/bin/dselect ]; then
     sudo apt install -y dselect
 fi
 
-# Vars
-destination="/home/cj/packages.list"
+# Defining destination of packages.list file
+destination="/source/to/packages.list"
 
 sudo apt update
 sudo dpkg --get-selections > $destination

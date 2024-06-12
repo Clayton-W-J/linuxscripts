@@ -1,4 +1,4 @@
-# This script is intended to be used to back all apt packages on a linux machine using apt and send it to a network location.
+# This script is intended to be used to back up all apt packages on a linux machine and send it to a network location.
 
 #!/bin/bash
 

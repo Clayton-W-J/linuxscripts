@@ -1,4 +1,4 @@
-# This script is intended to streamline the process of mounting a file share using cifs. The file share will be mounted using the current user's uid and gid.
+# This script is intended to be a quick and easy way of mounting a cifs file share. The file share will be mounted using the current user's uid and gid.
 # Version 3.0 of smb is in use here. This may need to be changed based on what version your machines run.
 
 #!/bin/bash

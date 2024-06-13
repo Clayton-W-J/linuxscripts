@@ -2,11 +2,6 @@
 
 #!/bin/bash
 
-# Install dselect if it's not already present
-if [ ! -f /usr/bin/dselect ]; then
-    sudo apt install -y dselect
-fi
-
 # Defining destination of packages.list file
 destination="/source/to/packages.list"
 

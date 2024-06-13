@@ -1,4 +1,4 @@
-# This script is intended to streamline the process of mounting a file share using cifs. The file share will be mounted using the current users uid and gid.
+# This script is intended to streamline the process of mounting a file share using cifs. The file share will be mounted using the current user's uid and gid.
 # Version 3.0 of smb is in use here. This may need to be changed based on what version your machines run.
 
 #!/bin/bash
@@ -27,7 +27,7 @@ fi
 mount_options="username=$username,password=$password,vers=3.0,uid=$(id -u),gid=$(id -g)"
 sudo mount -t cifs "$network_share" "$mount_point" -o "$mount_options"
 
-# If needing to run the command using root priviledges  comment the above command and un-comment the below command:
+# If needing mount the share using root priviledges comment out the above variables and command, then un-comment the below command:
 #sudo mount -t cifs "$network_share" "$mount_point" -o username="$username",password="$password",vers=3.0
 
 # Check if the mount was successful

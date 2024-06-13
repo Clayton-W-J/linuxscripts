@@ -36,7 +36,7 @@ fi
 
 # Function to log dashes
 log_dashes() {
-    echo "--------------------------------------------------------------------------------" >> "$log_file"
+    echo "------------------------------------------------------------------------------------------------" >> "$log_file"
 }
 
 # rsync the source to the destination and log the output
@@ -44,12 +44,13 @@ log_dashes
 echo "Starting rsync from $source to $destination at $(date)" | tee -a "$log_file"
 sudo rsync -avzP "$source" "$destination" >> "$log_file" 2>&1
 rsync_status=$?
-echo "--------------------------------------------------------------------------------" >> "$log_file"
 
 # Check if rsync was successful
 if [ $rsync_status -ne 0 ]; then
     echo "Error: rsync failed with status $rsync_status. Check the log file $log_file for details."
     exit 1
+    log_dashes
 else
     echo "rsync completed successfully at $(date)." | tee -a "$log_file"
+    log_dashes
 fi

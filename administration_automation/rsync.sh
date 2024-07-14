@@ -42,7 +42,7 @@ log_dashes() {
 # rsync the source to the destination and log the output
 log_dashes
 echo "Starting rsync from $source to $destination at $(date)" | tee -a "$log_file"
-sudo rsync -avzP "$source" "$destination" >> "$log_file" 2>&1
+sudo rsync -avbzP "$source" "$destination" >> "$log_file" 2>&1
 rsync_status=$?
 
 # Check if rsync was successful

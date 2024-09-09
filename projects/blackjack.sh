@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Array that specifies all 52 cards in a deck
-cards_in_a_deck=("Ace of Spades" "2 of Spades" "3 of Spades" "4 of Spades" "5 of Spades" "6 of Spades" "7 of Spades" "8 of Spades" "9 of Spades" "10 of Spades" "Jack of Spades" "King of Spades" "Queen of Spades" "Ace of Diamonds" >
+cards_in_a_deck=("Ace of Spades" "2 of Spades" "3 of Spades" "4 of Spades" "5 of>
 
 # Randomly call objects from the deck array
 random_element=${cards_in_a_deck[ $RANDOM % ${#cards_in_a_deck[@]} ]}
@@ -10,22 +10,31 @@ clear
 echo "Welcome to CJ's Blackjack! Do you wish to play? y/n"
 read -s -n 1 game_acceptance
 
-# If statement to accecpt or decline playing the game
 clear
-if [ $game_acceptance = 'y' ]; then
-    printf "How much money would you like to start with? "
-else
-    echo "Quitting application"
+# If statement to accept or decline playing the game
+if [ "$game_acceptance" = 'y' ]; then
+    while true; do
+        # Ask the user how much money they would like to start with
+        printf "How much money would you like to start with? "
+
+        # Read the user's bet
+        read users_bet
+        clear
+
+        # Ask if the bet is correct
+        echo "Your bet is \$${users_bet}, is this correct? y/n"
+        read -s -n 1 bet_check
+        clear
+
+        # Check if the bet is correct
+        if [ "$bet_check" = 'y' ]; then
+            break
+        fi
+    done
 fi
 
-# Setting the user bet then dealing first card
-read users_bet
-clear
-echo "You're bet is \$${users_bet}, is this correct? y/n"
-read -s -n 1 bet_check
-clear
-if [ $bet_check = 'y' ]; then
-    printf "The bet is correct!\n"
-else
-   printf "The bet is incorrect!\n"
-fi
+# Options menu
+printf "1. Dealer's Hand\n2. Your hand\n3. Money\n\nWhich would you like to choo>
+read user_menu_option
+if [ $user_menu option = '3' ]; then
+    printf "$users_bet"

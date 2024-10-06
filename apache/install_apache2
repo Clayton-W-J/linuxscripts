@@ -5,4 +5,7 @@ if [ ! -f /usr/sbin/apache2 ]; then
     sudo apt install -y libapache2-mod-php8.1
     sudo a2enmod php8.1
     sudo systemctl restart apache2
+    echo "Apache2 has been installed along with the following modules: libapache2-mod-php8>
+else
+    echo "Apache2 is already installed!"
 fi

@@ -26,9 +26,10 @@ sudo hostnamectl set-hostname "$NEW_HOSTNAME"
 echo "Updating /etc/hosts file..."
 sudo sed -i "s/127.0.1.1.*/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
 
-# Set a root password
+# Set a secure root password
 echo "Generating a secure root password..."
-ROOT_PASSWORD=$(< /dev/urandom tr -dc 'A-Za-z0-9@#$%&*' | head -c 18)
+ROOT_PASSWORD=$(< /dev/urandom tr -dc 'A-Z' | head -c 3)$(< /dev/urandom tr -dc '@#$%&*' | head -c 3)$(< /dev/urandom tr -dc 'a-z0-9' | head -c 12 | shuf | tr -d '\n')
+ROOT_PASSWORD=$(echo "$ROOT_PASSWORD" | fold -w1 | shuf | tr -d '\n') # Shuffle to randomize order
 echo "Root password: $ROOT_PASSWORD"
 echo "root:$ROOT_PASSWORD" | sudo chpasswd
 history -d $(history 1)  # Remove the password from history

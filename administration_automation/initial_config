@@ -34,6 +34,7 @@ echo "Root password: $ROOT_PASSWORD"
 echo "root:$ROOT_PASSWORD" | sudo chpasswd
 history -d $(history 1)  # Remove the password from history
 
+# Create SSH Key Pair
 echo "Creating a 4096-bit SSH key pair for user 'cj'..."
 # Get the current hostname
 CURRENT_HOSTNAME=$(hostname)

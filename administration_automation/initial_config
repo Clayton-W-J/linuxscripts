@@ -69,7 +69,3 @@ echo "Restarting SSH service..."
 sudo systemctl restart sshd
 
 echo "Setup complete!"
-
-- Install Tailscale and connect it
-- Root Password has no special characters:
-- I would like to see the root password 

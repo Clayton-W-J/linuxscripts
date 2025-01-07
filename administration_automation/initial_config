@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Set timezone to America/Chicago
+echo "Setting timezone to America/Chicago..."
+sudo timedatectl set-timezone America/Chicago
+
+# Update and upgrade the system
+echo "Updating and upgrading the system..."
+sudo apt update && sudo apt dist-upgrade -yy
+
+# Install the Proxmox QEMU Guest Agent
+echo "Installing Proxmox QEMU Guest Agent..."
+sudo apt install qemu-guest-agent -y
+
+# Set the hostname
+read -p "Enter the hostname you want to set: " NEW_HOSTNAME
+echo "Setting hostname to $NEW_HOSTNAME..."
+sudo hostnamectl set-hostname "$NEW_HOSTNAME"
+
+# Update /etc/hosts
+echo "Updating /etc/hosts file..."
+sudo sed -i "s/127.0.1.1.*/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
+
+# Set a root password
+echo "Generating a secure root password..."
+ROOT_PASSWORD=$(< /dev/urandom tr -dc 'A-Za-z0-9@#$%&*' | head -c 18)
+echo "Root password: $ROOT_PASSWORD"
+echo "root:$ROOT_PASSWORD" | sudo chpasswd
+history -d $(history 1)  # Remove the password from history
+
+# Generate SSH keys for user 'cj'
+echo "Creating a 4096-bit SSH key pair for user 'cj'..."
+sudo -u cj ssh-keygen -t rsa -b 4096 -f /home/cj/.ssh/id_rsa -N ""
+REMOTE_SFTP=""
+read -p "Enter the remote SFTP location (e.g., user@host:/path): " REMOTE_SFTP
+echo "Uploading private key to remote SFTP server..."
+scp /home/cj/.ssh/id_rsa "$REMOTE_SFTP"
+echo "Deleting private key locally..."
+sudo -u cj rm /home/cj/.ssh/id_rsa
+
+# Edit SSH configuration
+echo "Configuring SSH server settings..."
+SSH_CONFIG="/etc/ssh/sshd_config"
+
+sudo sed -i "s/^Include \/etc\/ssh\/sshd_config.d\/\*.conf/#&/" $SSH_CONFIG
+sudo sed -i "s/^#Port 22/Port 15370/" $SSH_CONFIG
+sudo sed -i "s/^#PermitRootLogin.*/PermitRootLogin no/" $SSH_CONFIG
+sudo sed -i "s/^#PasswordAuthentication.*/PasswordAuthentication no/" $SSH_CONFIG
+sudo sed -i "s/^#PubkeyAuthentication.*/PubkeyAuthentication yes/" $SSH_CONFIG
+
+echo "Restarting SSH service..."
+sudo systemctl restart sshd
+
+echo "Setup complete!"

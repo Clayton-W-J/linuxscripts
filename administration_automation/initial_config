@@ -34,12 +34,25 @@ echo "Root password: $ROOT_PASSWORD"
 echo "root:$ROOT_PASSWORD" | sudo chpasswd
 history -d $(history 1)  # Remove the password from history
 
-# Generate SSH keys for user 'cj'
 echo "Creating a 4096-bit SSH key pair for user 'cj'..."
-sudo -u cj ssh-keygen -t rsa -b 4096 -f /home/cj/.ssh/id_rsa -N ""
-scp /home/cj/.ssh/id_rsa initialconfig@backup-01-scale/mnt/nexusedgeit_data/Software/SSH_Keys
+# Get the current hostname
+CURRENT_HOSTNAME=$(hostname)
+# Generate the SSH key pair with the hostname as the file name
+sudo -u cj ssh-keygen -t rsa -b 4096 -f /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME} -N ""
+# Add the public key to the authorized_keys file
+echo "Adding the public key to /home/cj/.ssh/authorized_keys..."
+sudo -u cj mkdir -p /home/cj/.ssh
+sudo -u cj cat /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME}.pub >> /home/cj/.ssh/authorized_keys
+sudo -u cj chmod 600 /home/cj/.ssh/authorized_keys
+sudo -u cj chmod 700 /home/cj/.ssh
+# Upload the private key to the remote SFTP location
+REMOTE_SFTP="initialconfig@backup-01-scale:/mnt/nexusedgeit_data/Software/SSH_Keys"
+echo "Uploading private key to remote SFTP server at $REMOTE_SFTP..."
+scp /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME} "$REMOTE_SFTP"
+# Delete the private key locally
 echo "Deleting private key locally..."
-sudo -u cj rm /home/cj/.ssh/id_rsa
+sudo -u cj rm /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME}
+echo "SSH key setup completed successfully."
 
 # Edit SSH configuration
 echo "Configuring SSH server settings..."

@@ -1,12 +1,17 @@
 #!/bin/bash
 
-# Set timezone to America/Chicago
-echo "Setting timezone to America/Chicago..."
-sudo timedatectl set-timezone America/Chicago
-
 # Update and upgrade the system
 echo "Updating and upgrading the system..."
 sudo apt update && sudo apt dist-upgrade -yy
+
+# Install tailscale and run it
+echo "Installing and Running the TailScale installer"
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+
+# Set timezone to America/Chicago
+echo "Setting timezone to America/Chicago..."
+sudo timedatectl set-timezone America/Chicago
 
 # Install the Proxmox QEMU Guest Agent
 echo "Installing Proxmox QEMU Guest Agent..."
@@ -52,3 +57,7 @@ echo "Restarting SSH service..."
 sudo systemctl restart sshd
 
 echo "Setup complete!"
+
+- Install Tailscale and connect it
+- Root Password has no special characters:
+- I would like to see the root password 

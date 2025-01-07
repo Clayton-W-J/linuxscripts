@@ -41,7 +41,6 @@ CURRENT_HOSTNAME=$(hostname)
 sudo -u cj ssh-keygen -t rsa -b 4096 -f /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME} -N ""
 # Add the public key to the authorized_keys file
 echo "Adding the public key to /home/cj/.ssh/authorized_keys..."
-sudo -u cj mkdir -p /home/cj/.ssh
 sudo -u cj cat /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME}.pub >> /home/cj/.ssh/authorized_keys
 sudo -u cj chmod 600 /home/cj/.ssh/authorized_keys
 sudo -u cj chmod 700 /home/cj/.ssh

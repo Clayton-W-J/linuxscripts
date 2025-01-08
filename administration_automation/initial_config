@@ -33,24 +33,38 @@ echo "Root password: $ROOT_PASSWORD"
 echo "root:$ROOT_PASSWORD" | sudo chpasswd
 history -d $(history 1)  # Remove the password from history
 
+# Create a password for the SSH key
+echo "Generating a secure password for the SSH key..."
+SSH_KEY_PASSWORD=$(< /dev/urandom tr -dc 'A-Z' | head -c 3)$(< /dev/urandom tr -dc '@#$%&*' | head -c 3)$(< /dev/urandom tr -dc 'a-z0-9' | head -c 12 | shuf | tr -d '\n')
+SSH_KEY_PASSWORD=$(echo "$SSH_KEY_PASSWORD" | fold -w1 | shuf | tr -d '\n') # Shuffle to randomize order
+echo "SSH key password: $SSH_KEY_PASSWORD"
+
 # Create SSH Key Pair
 echo "Creating a 4096-bit SSH key pair for user 'cj'..."
 # Get the current hostname
 CURRENT_HOSTNAME=$(hostname)
-# Generate the SSH key pair with the hostname as the file name
-sudo -u cj ssh-keygen -t rsa -b 4096 -f /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME} -N ""
+# Generate the SSH key pair with the hostname as the file name and the password
+sudo -u cj ssh-keygen -t rsa -b 4096 -f /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME} -N "$SSH_KEY_PASSWORD"
+
 # Add the public key to the authorized_keys file
 echo "Adding the public key to /home/cj/.ssh/authorized_keys..."
 sudo -u cj cat /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME}.pub >> /home/cj/.ssh/authorized_keys
 sudo -u cj chmod 600 /home/cj/.ssh/authorized_keys
 sudo -u cj chmod 700 /home/cj/.ssh
+
+# Delete the public key file
+echo "Deleting the public key file..."
+sudo -u cj rm /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME}.pub
+
 # Upload the private key to the remote SFTP location
 REMOTE_SFTP="initialconfig@backup-01-scale:/mnt/nexusedgeit_data/Software/SSH_Keys"
 echo "Uploading private key to remote SFTP server at $REMOTE_SFTP..."
 scp /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME} "$REMOTE_SFTP"
+
 # Delete the private key locally
 echo "Deleting private key locally..."
 sudo -u cj rm /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME}
+
 echo "SSH key setup completed successfully."
 
 # Edit SSH configuration

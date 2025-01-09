@@ -1,5 +1,3 @@
-# This script is intended to be used to congigure a new Ubuntu Server on Proxmox with everything I deem useful to a new deployment.
-
 #!/bin/bash
 
 # Function to output text in green
@@ -101,15 +99,29 @@ sudo sed -i "s/^#PubkeyAuthentication.*/PubkeyAuthentication yes/" $SSH_CONFIG
 green_echo "Restarting SSH service..."
 sudo systemctl restart sshd
 
+# Install Zabbix agent
+green_echo "Installing Zabbix agent..."
+sudo apt install -y zabbix-agent
+# Configure Zabbix agent
+green_echo "Configuring Zabbix agent..."
+ZABBIX_CONF="/etc/zabbix/zabbix_agentd.conf"
+ZABBIX_SERVER="100.97.170.64"
+NEW_HOSTNAME=$(hostname)
+sudo sed -i "s/^Server=.*/Server=$ZABBIX_SERVER/" "$ZABBIX_CONF"
+sudo sed -i "s/^ServerActive=.*/ServerActive=$ZABBIX_SERVER/" "$ZABBIX_CONF"
+sudo sed -i "s/^# Hostname=.*/Hostname=$NEW_HOSTNAME/" "$ZABBIX_CONF"
+# Restart Zabbix agent
+green_echo "Restarting Zabbix agent..."
+sudo systemctl restart zabbix-agent
+
 clear
 
 green_echo "Setup complete!"
 green_echo "Updated the System"
 green_echo "Set the hostname to $NEW_HOSTNAME"
 green_echo "Set Timezone to America/Chicago"
-green_echo "Installed TailScale"
-green_echo "Installed The QEMU Guest Agent"
-green_echo "Sent the private key file to $REMOTE_SFTP"
+green_echo "Installed TailScale, QEMU Guest Agent, and Zabbix"
+green_echo "Sent the CJ private key file to $REMOTE_SFTP"
 green_echo "User $USERNAME has been created successfully."
 green_echo "Set the root password to $ROOT_PASSWORD"
 green_echo "Ansible User Password: $USER_PASSWORD"

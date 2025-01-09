@@ -117,7 +117,7 @@ sudo systemctl restart zabbix-agent
 clear
 
 green_echo "Setup complete!"
-green_echo -e "\nDetails:\n"
+green_echo "\nDetails:\n"
 green_echo "- Updated the System"
 green_echo "- Set the hostname to $NEW_HOSTNAME"
 green_echo "- Set Timezone to America/Chicago"

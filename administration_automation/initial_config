@@ -1,3 +1,5 @@
+# This script is intended to be used to congigure a new Ubuntu Server on Proxmox with everything I deem useful to a new deployment.
+
 #!/bin/bash
 
 # Function to output text in green

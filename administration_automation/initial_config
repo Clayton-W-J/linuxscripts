@@ -53,6 +53,7 @@ echo "$USERNAME:$USER_PASSWORD" | sudo chpasswd
 # Grant limited sudo privileges for updating the system
 green_echo "Granting '$USERNAME' permission to update the system without a password..."
 VISUDO_LINE="$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/apt update -y, /usr/bin/apt upgrade -y, /usr/bin/apt autoremove -y"
+echo "$VISUDO_LINE" | sudo EDITOR='tee -a' visudo
 # Configure the SSH key
 green_echo "Adding the public SSH key to /home/$USERNAME/.ssh/authorized_keys..."
 USER_HOME="/home/$USERNAME"

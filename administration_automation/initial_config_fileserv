@@ -1,3 +1,5 @@
+# This script is intended to be deployed on a baremetal machine running Ubuntu 22.04LTS and deploy everything needed for an initial setup and basic file server
+
 #!/bin/bash
 
 # Function to output text in green

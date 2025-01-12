@@ -17,7 +17,7 @@ if [ ! -f /usr/bin/tailscale ]; then
     sudo tailscale up
 else
 clear
-echo "TailScale is already installed!"
+green_echo "TailScale is already installed!"
 fi
 
 # Install the Proxmox Qemu Guest Agent
@@ -26,7 +26,7 @@ if [ ! -f /usr/sbin/qemu-ga ]; then
     sudo systemctl enable qemu-guest-agent --now
 else
 clear
-echo "QEMU Guest Agent is already installed!"
+green_echo "QEMU Guest Agent is already installed!"
 fi
 
 # Install and configure Zabbix agent
@@ -41,7 +41,7 @@ if [ ! -d /etc/zabbix ]; then
     sudo systemctl restart zabbix-agent   
 else
 clear
-echo "Zabbix is already installed!"
+green_echo "Zabbix is already installed!"
 fi
 
 # Set timezone to America/Chicago

@@ -59,6 +59,34 @@ else
     green_echo "Zabbix is already installed!"
 fi
 
+# Install Cockpit
+read -p "Would you like to install Cockpit? (y/n): " INSTALL_COCKPIT
+if [[ "$INSTALL_COCKPIT" =~ ^[Yy]$ ]]; then
+    green_echo "Installing Cockpit..."
+    sudo apt install -y cockpit
+    green_echo "Cockpit has been installed and enabled!"
+else
+    green_echo "Skipping Cockpit installation."
+fi
+
+# Install the 45 Drives File Sharing module for Cockpit
+read -p "Would you like to install the 45 Drives File Sharing module for Cockpit? (File Server) (y/n): " INSTALL_COCKPIT_FILE_SHARING
+if [[ "$INSTALL_COCKPIT_FILE_SHARING" =~ ^[Yy]$ ]]; then
+    green_echo "Downloading and installing Cockpit Identities..."
+    curl -LO https://github.com/45Drives/cockpit-identities/releases/download/v0.1.12/cockpit-identities_0.1.12-1focal_all.deb
+    sudo apt install -y ./cockpit-identities_0.1.12-1focal_all.deb
+    rm -f cockpit-identities_0.1.12-1focal_all.deb
+
+    green_echo "Downloading and installing Cockpit File Sharing..."
+    curl -LO https://github.com/45Drives/cockpit-file-sharing/releases/download/v4.2.8/cockpit-file-sharing_4.2.8-1focal_all.deb
+    sudo apt install -y ./cockpit-file-sharing_4.2.8-1focal_all.deb
+    rm -f cockpit-file-sharing_4.2.8-1focal_all.deb
+
+    green_echo "Cockpit File Sharing has been installed and enabled!"
+else
+    green_echo "Skipping Cockpit File Sharing installation."
+fi
+
 # Set timezone to America/Chicago
 green_echo "Setting timezone to America/Chicago..."
 sudo timedatectl set-timezone America/Chicago

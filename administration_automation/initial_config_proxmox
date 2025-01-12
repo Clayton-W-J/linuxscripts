@@ -11,10 +11,14 @@ function green_echo() {
 green_echo "Updating and upgrading the system..."
 sudo apt update && sudo apt dist-upgrade -yy
 
-# Install tailscale and run it
-green_echo "Installing TailScale and Running It..."
-curl -fsSL https://tailscale.com/install.sh | sh
-sudo tailscale up
+# Install Tailscale and run it
+if [ ! -f /usr/bin/tailscale ]; then
+    curl -fsSL https://tailscale.com/install.sh | sh
+    sudo tailscale up
+else
+clear
+echo "TailScale is already installed!"
+fi
 
 # Install the Proxmox QEMU Guest Agent
 green_echo "Installing the Proxmox QEMU Guest Agent"

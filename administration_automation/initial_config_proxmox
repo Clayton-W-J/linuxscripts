@@ -13,35 +13,50 @@ sudo apt update && sudo apt dist-upgrade -yy
 
 # Install Tailscale and run it
 if [ ! -f /usr/bin/tailscale ]; then
-    curl -fsSL https://tailscale.com/install.sh | sh
-    sudo tailscale up
+    read -p "Would you like to install Tailscale? (y/n): " INSTALL_TAILSCALE
+    if [[ "$INSTALL_TAILSCALE" =~ ^[Yy]$ ]]; then
+        curl -fsSL https://tailscale.com/install.sh | sh
+        sudo tailscale up
+        green_echo "Tailscale installed and started!"
+    else
+        green_echo "Skipping Tailscale installation."
+    fi
 else
-clear
-green_echo "TailScale is already installed!"
+    green_echo "Tailscale is already installed!"
 fi
 
 # Install the Proxmox Qemu Guest Agent
 if [ ! -f /usr/sbin/qemu-ga ]; then
-    sudo apt install qemu-guest-agent -y
-    sudo systemctl enable qemu-guest-agent --now
+    read -p "Would you like to install the Proxmox QEMU Guest Agent? (y/n): " INSTALL_QEMU
+    if [[ "$INSTALL_QEMU" =~ ^[Yy]$ ]]; then
+        sudo apt install qemu-guest-agent -y
+        sudo systemctl enable qemu-guest-agent --now
+        green_echo "QEMU Guest Agent installed and enabled!"
+    else
+        green_echo "Skipping QEMU Guest Agent installation."
+    fi
 else
-clear
-green_echo "QEMU Guest Agent is already installed!"
+    green_echo "QEMU Guest Agent is already installed!"
 fi
 
 # Install and configure Zabbix agent
 if [ ! -d /etc/zabbix ]; then
-    sudo apt install -y zabbix-agent
-    ZABBIX_CONF="/etc/zabbix/zabbix_agentd.conf"
-    ZABBIX_SERVER="100.97.170.64"
-    NEW_HOSTNAME=$(hostname)
-    sudo sed -i "s/^Server=.*/Server=$ZABBIX_SERVER/" "$ZABBIX_CONF"
-    sudo sed -i "s/^ServerActive=.*/ServerActive=$ZABBIX_SERVER/" "$ZABBIX_CONF"
-    sudo sed -i "s/^# Hostname=.*/Hostname=$NEW_HOSTNAME/" "$ZABBIX_CONF"
-    sudo systemctl restart zabbix-agent   
+    read -p "Would you like to install and configure the Zabbix agent? (y/n): " INSTALL_ZABBIX
+    if [[ "$INSTALL_ZABBIX" =~ ^[Yy]$ ]]; then
+        sudo apt install -y zabbix-agent
+        ZABBIX_CONF="/etc/zabbix/zabbix_agentd.conf"
+        ZABBIX_SERVER="100.97.170.64"
+        NEW_HOSTNAME=$(hostname)
+        sudo sed -i "s/^Server=.*/Server=$ZABBIX_SERVER/" "$ZABBIX_CONF"
+        sudo sed -i "s/^ServerActive=.*/ServerActive=$ZABBIX_SERVER/" "$ZABBIX_CONF"
+        sudo sed -i "s/^# Hostname=.*/Hostname=$NEW_HOSTNAME/" "$ZABBIX_CONF"
+        sudo systemctl restart zabbix-agent
+        green_echo "Zabbix agent installed and configured!"
+    else
+        green_echo "Skipping Zabbix agent installation."
+    fi
 else
-clear
-green_echo "Zabbix is already installed!"
+    green_echo "Zabbix is already installed!"
 fi
 
 # Set timezone to America/Chicago

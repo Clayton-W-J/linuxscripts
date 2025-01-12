@@ -1,3 +1,5 @@
+# This script is intended to be deployed to an Ubuntu 22.04LTS vm in PVE
+
 #!/bin/bash
 
 # Function to output text in green

@@ -1,4 +1,4 @@
-# This script is intended to be deployed to an Ubuntu 22.04LTS vm in a PVE (Proxmox Virtual Environment)
+# This script is intended to be deployed to an Ubuntu 22.04LTS vm in a Proxmox Virtual Environment
 
 #!/bin/bash
 

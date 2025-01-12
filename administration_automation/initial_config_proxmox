@@ -20,9 +20,14 @@ clear
 echo "TailScale is already installed!"
 fi
 
-# Install the Proxmox QEMU Guest Agent
-green_echo "Installing the Proxmox QEMU Guest Agent"
-sudo apt install qemu-guest-agent -y
+# Install the Proxmox Qemu Guest Agent
+if [ ! -f /usr/sbin/qemu-ga ]; then
+    sudo apt install qemu-guest-agent -y
+    sudo systemctl enable qemu-guest-agent --now
+else
+clear
+echo "QEMU Guest Agent is already installed!"
+fi
 
 # Set timezone to America/Chicago
 green_echo "Setting timezone to America/Chicago..."

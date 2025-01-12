@@ -111,20 +111,20 @@ sudo sed -i "s/^#PubkeyAuthentication.*/PubkeyAuthentication yes/" $SSH_CONFIG
 green_echo "Restarting SSH service..."
 sudo systemctl restart sshd
 
-# Install Zabbix agent
-green_echo "Installing Zabbix agent..."
-sudo apt install -y zabbix-agent
-# Configure Zabbix agent
-green_echo "Configuring Zabbix agent..."
-ZABBIX_CONF="/etc/zabbix/zabbix_agentd.conf"
-ZABBIX_SERVER="100.97.170.64"
-NEW_HOSTNAME=$(hostname)
-sudo sed -i "s/^Server=.*/Server=$ZABBIX_SERVER/" "$ZABBIX_CONF"
-sudo sed -i "s/^ServerActive=.*/ServerActive=$ZABBIX_SERVER/" "$ZABBIX_CONF"
-sudo sed -i "s/^# Hostname=.*/Hostname=$NEW_HOSTNAME/" "$ZABBIX_CONF"
-# Restart Zabbix agent
-green_echo "Restarting Zabbix agent..."
-sudo systemctl restart zabbix-agent
+# Install and configure Zabbix agent
+if [ ! -d /etc/zabbix ]; then
+    sudo apt install -y zabbix-agent
+    ZABBIX_CONF="/etc/zabbix/zabbix_agentd.conf"
+    ZABBIX_SERVER="100.97.170.64"
+    NEW_HOSTNAME=$(hostname)
+    sudo sed -i "s/^Server=.*/Server=$ZABBIX_SERVER/" "$ZABBIX_CONF"
+    sudo sed -i "s/^ServerActive=.*/ServerActive=$ZABBIX_SERVER/" "$ZABBIX_CONF"
+    sudo sed -i "s/^# Hostname=.*/Hostname=$NEW_HOSTNAME/" "$ZABBIX_CONF"
+    sudo systemctl restart zabbix-agent   
+else
+clear
+echo "Zabbix is already installed!"
+fi
 
 clear
 

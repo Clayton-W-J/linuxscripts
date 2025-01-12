@@ -1,0 +1,144 @@
+#!/bin/bash
+
+# Function to output text in green
+function green_echo() {
+  echo -e "\033[0;32m$1\033[0m"
+}
+
+# Update and upgrade the system
+green_echo "Updating and upgrading the system..."
+sudo apt update && sudo apt dist-upgrade -yy
+
+# Install tailscale and run it
+green_echo "Installing TailScale and Running It..."
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+
+# Install Cockpit
+sudo apt install cockpit
+# Cockpit Identities Direct from Deb
+curl -LO https://github.com/45Drives/cockpit-identities/releases/download/v0.1.12/cockpit-identities_0.1.12-1focal_all.deb
+sudo apt install ./cockpit-identities_0.1.12-1focal_all.deb
+# Cockpit File Sharing Direct from Deb
+curl -LO https://github.com/45Drives/cockpit-file-sharing/releases/download/v4.2.8/cockpit-file-sharing_4.2.8-1focal_all.deb
+sudo apt install ./cockpit-file-sharing_4.2.8-1focal_all.deb
+
+# Set timezone to America/Chicago
+green_echo "Setting timezone to America/Chicago..."
+sudo timedatectl set-timezone America/Chicago
+
+# Set the hostname
+read -p "$(green_echo 'Enter the hostname you want to set: ')" NEW_HOSTNAME
+green_echo "Setting hostname to $NEW_HOSTNAME..."
+sudo hostnamectl set-hostname "$NEW_HOSTNAME"
+# Update /etc/hosts
+green_echo "Updating /etc/hosts file..."
+sudo sed -i "s/127.0.1.1.*/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
+
+# Set a secure root password
+green_echo "Generating a secure root password..."
+ROOT_PASSWORD=$(< /dev/urandom tr -dc 'A-Z' | head -c 3)$(< /dev/urandom tr -dc '@#$%&*' | head -c 3)$(< /dev/urandom tr -dc 'a-z0-9' | head -c 12 | shuf | tr -d '\n')
+ROOT_PASSWORD=$(echo "$ROOT_PASSWORD" | fold -w1 | shuf | tr -d '\n') # Shuffle to randomize order
+green_echo "Root password: $ROOT_PASSWORD"
+echo "root:$ROOT_PASSWORD" | sudo chpasswd
+history -d $(history 1)  # Remove the password from history
+
+# Ansible User: 
+# Define the username and public SSH key
+USERNAME="ansible"
+SSH_PUBLIC_KEY="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQCz/pPH+NpCcXOyMWX3+DCN9PomgE+XgA+6umxFh3iqchfsusfIdd/m5z6O/FVT5ocSswF+a8k4lnE5OvvY89yrrV6nqIFI0vkydYnF7XyGSS8xh5/7Zp/zkMcwccrk1QsYr3v5Du0y96uFurIWMomRovrEmhrwL2b7AFVeLB+l7GStP/kFpkgGubI/ZklwTLhnwTELdkD3JRfnW/zuJCW4OFeo3S7QVK7KyEQzxROPOxWUr1nqnBTk0Mm1g8OTV2wBMvaYnqYB8jek/Yp2tXx8H0wvf3r1Jfl+90hWXR6AlZNFr6s+Rtprd052Yq3JfatFHMfiiQwYzboZtdovA660Pobz/wReyrOm9nQSFwg4c1A1zNF49VK79bjOq8ue92cXtpwYCVP5YuUnFnuUAo3AmIoCCpPs0yoZ/kDyvVGB85kG6yOcyov020TyuaGjLvDHXe9ggiosZzPuVenV75SU33x3VpuOHhsroLt7zJRR9Vb7cQnVjugzXfPJYY+/epVvqQtzB5VEIdR3pVungA+lQLDBoFGrnxZyNQoKeYJTPUdQhACtqDAgYAR+qnmTqgmmpuvbxagLoaRx6FBRqNK3fDQqJQiNEnqjaJ6cDYi3WTac7RavPCIr9o+G1+Q+Rr8PueE7a6wX2XiJrJt8IbR2n6F85m2YrwirgL1DgJ17pQ== rsa-key-20241212"
+# Add the user
+green_echo "Creating user '$USERNAME'..."
+sudo adduser --disabled-password --gecos "" "$USERNAME"
+# Generate a secure password for the user
+green_echo "Generating a secure password for the user '$USERNAME'..."
+USER_PASSWORD=$(< /dev/urandom tr -dc 'A-Z' | head -c 3)$(< /dev/urandom tr -dc '@#$%&*' | head -c 3)$(< /dev/urandom tr -dc 'a-z0-9' | head -c 12 | shuf | tr -d '\n')
+USER_PASSWORD=$(echo "$USER_PASSWORD" | fold -w1 | shuf | tr -d '\n') # Shuffle to randomize order
+echo "$USERNAME:$USER_PASSWORD" | sudo chpasswd
+# Grant limited sudo privileges for updating the system
+green_echo "Granting '$USERNAME' permission to update the system without a password..."
+VISUDO_LINE="$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/apt update -y, /usr/bin/apt upgrade -y, /usr/bin/apt autoremove -y"
+echo "$VISUDO_LINE" | sudo EDITOR='tee -a' visudo
+# Configure the SSH key
+green_echo "Adding the public SSH key to /home/$USERNAME/.ssh/authorized_keys..."
+USER_HOME="/home/$USERNAME"
+sudo -u "$USERNAME" mkdir -p "$USER_HOME/.ssh"
+echo "$SSH_PUBLIC_KEY" | sudo -u "$USERNAME" tee "$USER_HOME/.ssh/authorized_keys" > /dev/null
+sudo -u "$USERNAME" chmod 600 "$USER_HOME/.ssh/authorized_keys"
+sudo -u "$USERNAME" chmod 700 "$USER_HOME/.ssh"
+
+# Create a password for the SSH key
+green_echo "Generating a secure password for the SSH key..."
+SSH_KEY_PASSWORD=$(< /dev/urandom tr -dc 'A-Z' | head -c 3)$(< /dev/urandom tr -dc '@#$%&*' | head -c 3)$(< /dev/urandom tr -dc 'a-z0-9' | head -c 12 | shuf | tr -d '\n')
+SSH_KEY_PASSWORD=$(echo "$SSH_KEY_PASSWORD" | fold -w1 | shuf | tr -d '\n') # Shuffle to randomize order
+green_echo "SSH key password: $SSH_KEY_PASSWORD"
+# Create SSH Key Pair
+green_echo "Creating a 4096-bit SSH key pair for user 'cj'..."
+# Get the current hostname
+CURRENT_HOSTNAME=$(hostname)
+# Generate the SSH key pair with the hostname as the file name and the password
+sudo -u cj ssh-keygen -t rsa -b 4096 -f /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME} -N "$SSH_KEY_PASSWORD"
+# Add the public key to the authorized_keys file
+green_echo "Adding the public key to /home/cj/.ssh/authorized_keys..."
+sudo -u cj cat /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME}.pub >> /home/cj/.ssh/authorized_keys
+sudo -u cj chmod 600 /home/cj/.ssh/authorized_keys
+sudo -u cj chmod 700 /home/cj/.ssh
+# Delete the public key file
+green_echo "Deleting the public key file..."
+sudo -u cj rm /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME}.pub
+# Upload the private key to the remote SFTP location
+REMOTE_SFTP="initialconfig@backup-01-scale:/mnt/nexusedgeit_data/Software/SSH_Keys"
+green_echo "Uploading private key to remote SFTP server at $REMOTE_SFTP..."
+scp /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME} "$REMOTE_SFTP"
+# Delete the private key locally
+green_echo "Deleting private key locally..."
+sudo -u cj rm /home/cj/.ssh/id_rsa_${CURRENT_HOSTNAME}
+
+# Edit SSH configuration
+green_echo "Configuring SSH server settings..."
+SSH_CONFIG="/etc/ssh/sshd_config"
+sudo sed -i "s/^Include \/etc\/ssh\/sshd_config.d\/\*.conf/#&/" $SSH_CONFIG
+sudo sed -i "s/^#Port 22/Port 15370/" $SSH_CONFIG
+sudo sed -i "s/^#PermitRootLogin.*/PermitRootLogin no/" $SSH_CONFIG
+sudo sed -i "s/^#PasswordAuthentication.*/PasswordAuthentication no/" $SSH_CONFIG
+sudo sed -i "s/^#PubkeyAuthentication.*/PubkeyAuthentication yes/" $SSH_CONFIG
+green_echo "Restarting SSH service..."
+sudo systemctl restart sshd
+
+# Install Zabbix agent
+green_echo "Installing Zabbix agent..."
+sudo apt install -y zabbix-agent
+# Configure Zabbix agent
+green_echo "Configuring Zabbix agent..."
+ZABBIX_CONF="/etc/zabbix/zabbix_agentd.conf"
+ZABBIX_SERVER="100.97.170.64"
+NEW_HOSTNAME=$(hostname)
+sudo sed -i "s/^Server=.*/Server=$ZABBIX_SERVER/" "$ZABBIX_CONF"
+sudo sed -i "s/^ServerActive=.*/ServerActive=$ZABBIX_SERVER/" "$ZABBIX_CONF"
+sudo sed -i "s/^# Hostname=.*/Hostname=$NEW_HOSTNAME/" "$ZABBIX_CONF"
+# Restart Zabbix agent
+green_echo "Restarting Zabbix agent..."
+sudo systemctl restart zabbix-agent
+
+clear
+
+green_echo "Setup complete!"
+echo -e "\nDetails:\n"
+green_echo "- Updated the System"
+green_echo "- Set the hostname to $NEW_HOSTNAME"
+green_echo "- Set Timezone to America/Chicago"
+green_echo "- Installed TailScale, QEMU Guest Agent, and Zabbix"
+green_echo "- Sent the CJ private key file to $REMOTE_SFTP"
+green_echo "- User $USERNAME has been created successfully."
+green_echo "- Root password: $ROOT_PASSWORD"
+green_echo "- Ansible password: $USER_PASSWORD"
+green_echo "- CJ SSH password: $SSH_KEY_PASSWORD"
+
+# Reboot the System
+read -p "Do you want to reboot the system? (Y/N): " answer
+if [ "$answer" == "Y" ]; then
+  sudo reboot now
+
+else
+  echo "Exiting."
+fi

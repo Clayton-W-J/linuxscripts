@@ -173,7 +173,7 @@ clear
 
 green_echo "Setup complete!"
 echo -e "\nDetails:\n"
-green_echo "- Updated the System"
+green_echo "- System has been updated and upgraded"
 green_echo "- Set the hostname to $NEW_HOSTNAME"
 green_echo "- Set Timezone to America/Chicago"
 green_echo "- Installed TailScale, QEMU Guest Agent, and Zabbix"

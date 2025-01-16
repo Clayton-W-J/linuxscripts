@@ -30,7 +30,7 @@ if [ ! -f /usr/sbin/qemu-ga ]; then
     read -p "Would you like to install the Proxmox QEMU Guest Agent? (y/n): " INSTALL_QEMU
     if [[ "$INSTALL_QEMU" =~ ^[Yy]$ ]]; then
         sudo apt install qemu-guest-agent -y
-        sudo systemctl enable qemu-guest-agent --now
+        sudo systemctl enable --now qemu-guest-agent
         green_echo "QEMU Guest Agent installed and enabled!"
     else
         green_echo "Skipping QEMU Guest Agent installation."

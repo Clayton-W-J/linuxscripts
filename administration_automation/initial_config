@@ -4,33 +4,44 @@
 
 # Function to output text in green
 function green_echo() {
-  echo -e "\033[0;32m$1\033[0m"
+  echo -e "\033[0;32m$1\033[0m" > /dev/tty
 }
 
-# Update and upgrade the system
-green_echo "Updating and upgrading the system..."
-sudo apt update && sudo apt dist-upgrade -yy
+# Create or clear the log file
+LOG_FILE="$(dirname "$0")/initial_config.log"
+> "$LOG_FILE" # Clears the log file
+
+# Redirect all stdout and stderr to the log file
+exec > >(tee -a "$LOG_FILE") 2>&1
+
+clear
 
 # Install Tailscale and run it
 if [ ! -f /usr/bin/tailscale ]; then
     read -p "Would you like to install Tailscale? (y/n): " INSTALL_TAILSCALE
     if [[ "$INSTALL_TAILSCALE" =~ ^[Yy]$ ]]; then
-        curl -fsSL https://tailscale.com/install.sh | sh
+        {
+            green_echo "Installing and starting Tailscale..."
+            curl -fsSL https://tailscale.com/install.sh | sh
+        } >> "$LOG_FILE" 2>&1
         sudo tailscale up
-        green_echo "Tailscale installed and started!"
+        green_echo "Tailscale has been installed and started!"
     else
-        green_echo "Skipping Tailscale installation."
+        green_echo "Tailscale installation skipped."
     fi
 else
-    green_echo "Tailscale is already installed!"
+    green_echo "Tailscale is already installed."
 fi
 
 # Install the Proxmox Qemu Guest Agent
 if [ ! -f /usr/sbin/qemu-ga ]; then
     read -p "Would you like to install the Proxmox QEMU Guest Agent? (y/n): " INSTALL_QEMU
     if [[ "$INSTALL_QEMU" =~ ^[Yy]$ ]]; then
-        sudo apt install qemu-guest-agent -y
-        sudo systemctl enable --now qemu-guest-agent
+        {
+            green_echo "Installing, enabling, and starting the QEMU Guest Agent..."
+            sudo apt install qemu-guest-agent -y
+            sudo systemctl enable --now qemu-guest-agent
+        } >> "$LOG_FILE" 2>&1
         green_echo "QEMU Guest Agent installed and enabled!"
     else
         green_echo "Skipping QEMU Guest Agent installation."
@@ -43,28 +54,33 @@ fi
 if [ ! -d /etc/zabbix ]; then
     read -p "Would you like to install and configure the Zabbix agent? (y/n): " INSTALL_ZABBIX
     if [[ "$INSTALL_ZABBIX" =~ ^[Yy]$ ]]; then
-        sudo apt install -y zabbix-agent
-        ZABBIX_CONF="/etc/zabbix/zabbix_agentd.conf"
-        ZABBIX_SERVER="100.97.170.64"
-        NEW_HOSTNAME=$(hostname)
-        sudo sed -i "s/^Server=.*/Server=$ZABBIX_SERVER/" "$ZABBIX_CONF"
-        sudo sed -i "s/^ServerActive=.*/ServerActive=$ZABBIX_SERVER/" "$ZABBIX_CONF"
-        sudo sed -i "s/^# Hostname=.*/Hostname=$NEW_HOSTNAME/" "$ZABBIX_CONF"
-        sudo systemctl restart zabbix-agent
-        green_echo "Zabbix agent installed and configured!"
+        {
+            green_echo "Installing, configuring, and starting the Zabbix Agent..."
+            sudo apt install -y zabbix-agent
+            ZABBIX_CONF="/etc/zabbix/zabbix_agentd.conf"
+            ZABBIX_SERVER="100.97.170.64"
+            NEW_HOSTNAME=$(hostname)
+            sudo sed -i "s/^Server=.*/Server=$ZABBIX_SERVER/" "$ZABBIX_CONF"
+            sudo sed -i "s/^ServerActive=.*/ServerActive=$ZABBIX_SERVER/" "$ZABBIX_CONF"
+            sudo sed -i "s/^# Hostname=.*/Hostname=$NEW_HOSTNAME/" "$ZABBIX_CONF"
+            sudo systemctl restart zabbix-agent
+        } >> "$LOG_FILE" 2>&1
+        green_echo "Zabbix agent has been installed, configured, and started!"
     else
         green_echo "Skipping Zabbix agent installation."
     fi
 else
-    green_echo "Zabbix is already installed!"
+    green_echo "The Zabbix Agent is already installed!"
 fi
 
 # Install Cockpit
 read -p "Would you like to install Cockpit? (y/n): " INSTALL_COCKPIT
 if [[ "$INSTALL_COCKPIT" =~ ^[Yy]$ ]]; then
-    green_echo "Installing Cockpit..."
-    sudo apt install -y cockpit
-    green_echo "Cockpit has been installed and enabled!"
+    {
+        green_echo "Installing Cockpit..."
+        sudo apt install -y cockpit
+        green_echo "Cockpit has been installed!"
+    } >> "$LOG_FILE" 2>&1
 else
     green_echo "Skipping Cockpit installation."
 fi

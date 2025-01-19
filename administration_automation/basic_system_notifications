@@ -1,1 +1,33 @@
+#!/bin/bash
+# This scirpt will send a weekly report of uptime, disk usage, memory usage, and raid status (if applicable). Intended to be used on Debian based systems. This script assumes you have setup an MTA such as postfix to send mail.
 
+# Variables
+EMAIL="<your_email_here>"
+HOSTNAME=$(hostname)
+DATE=$(date +"%m-%d-%Y %H:%M:%S")
+STATUS_FILE="/tmp/system_status.txt"
+
+# Create a status report
+{
+  echo "System Status Report for $HOSTNAME - $DATE"
+  echo "=========================================="
+  echo
+  echo "Uptime:"
+  uptime
+  echo
+  echo "Disk Usage:"
+  df -h | grep -E 'Filesystem|/dev/mapper/ubuntu--vg-ubuntu--lv|/dev/dm-1'
+  echo
+  echo "Memory Usage:"
+  free -h
+  echo
+  echo "RAID Status:"
+  sudo mdadm --detail --scan
+  sudo mdadm --detail /dev/md* 2>/dev/null || echo "No RAID arrays detected."
+} > "$STATUS_FILE"
+
+# Send the report via email
+mail -s "Weekly System Status Report for $HOSTNAME" "$EMAIL" < "$STATUS_FILE"
+
+# Clean up
+rm "$STATUS_FILE"

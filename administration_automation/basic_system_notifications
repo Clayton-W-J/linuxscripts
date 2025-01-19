@@ -1,5 +1,6 @@
 #!/bin/bash
-# This scirpt will send a weekly report of uptime, disk usage, memory usage, and raid status (if applicable). Intended to be used on Debian based systems. This script assumes you have setup an MTA such as postfix to send mail.
+# This scirpt will send a weekly report of uptime, disk usage, memory usage, and raid status (if applicable). Intended to be used on Debian based systems.
+# This scipt assumes that you have setup an MTA such as postfix for you mail backend.
 
 # Variables
 EMAIL="<your_email_here>"

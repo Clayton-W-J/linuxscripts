@@ -17,7 +17,7 @@ STATUS_FILE="/tmp/system_status.txt"
   uptime
   echo
   echo "Disk Usage:"
-  df -h | grep -E 'Filesystem|/dev/mapper/ubuntu--vg-ubuntu--lv|/dev/dm-1'
+  df -h | grep -E 'Filesystem|<your_filesystem_here>|<your_filesystem_here>'
   echo
   echo "Memory Usage:"
   free -h

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-TO="cjackson@nexusedgeit.com"
+TO="<your_email_here>"
 HOSTNAME=$(hostname)
 DATE=$(date +"%m-%d-%Y %H:%M:%S")
 STATUS_FILE="/tmp/system_status.txt"

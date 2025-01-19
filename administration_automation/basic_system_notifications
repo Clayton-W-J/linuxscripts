@@ -1,34 +1,49 @@
 #!/bin/bash
-# This scirpt will send a weekly report of uptime, disk usage, memory usage, and raid status (if applicable). Intended to be used on Debian based systems.
-# This scipt assumes that you have setup an MTA such as postfix for you mail backend.
 
 # Variables
-EMAIL="<your_email_here>"
+TO="<your_email_here>"
 HOSTNAME=$(hostname)
 DATE=$(date +"%m-%d-%Y %H:%M:%S")
 STATUS_FILE="/tmp/system_status.txt"
 
-# Create a status report
+# Create a status report with improved formatting
 {
   echo "System Status Report for $HOSTNAME - $DATE"
   echo "=========================================="
   echo
-  echo "Uptime:"
-  uptime
+  echo "=====Uptime:======"
+  printf " %-15s %s\n" "Current Time:" "$(date +"%H:%M:%S")"
+  printf " %-19s %s\n" "Uptime:" "$(uptime -p)"
+  printf " %-15s %s\n" "Load Average:" "$(uptime | awk -F'load average:' '{print>
   echo
-  echo "Disk Usage:"
-  df -h | grep -E 'Filesystem|<your_filesystem_here>|<your_filesystem_here>'
+  echo "=====Disk Usage:====="
+  # Print the header once
+  printf "%-65s %-10s %-10s %-10s %-10s\n" "Filesystem" "Size" "Used" "Avail" "U>
+  # Filter and format specific filesystems
+df -h | awk '
+    $1 == "/dev/mapper/ubuntu--vg-ubuntu--lv" {
+        printf "%-45s %-10s %-10s %-10s %-10s\n", $1, $2, $3, $4, $5
+    }
+    $1 == "/dev/dm-1" {
+        printf "%-63s %-10s %-11s %-12s %-10s\n", $1, $2, $3, $4, $5
+    }
+'
   echo
-  echo "Memory Usage:"
-  free -h
+  echo "=====Memory Usage:======"
+  printf "%-15s %-15s %-15s %-15s %-15s %-15s\n" "Total" "Used" "Free" "Shared" >
+  free -h | awk 'NR==2 { printf "%-15s %-13s %-16s %-16s %-18s %-18s\n", $2, $3,>
   echo
-  echo "RAID Status:"
-  sudo mdadm --detail --scan
-  sudo mdadm --detail /dev/md* 2>/dev/null || echo "No RAID arrays detected."
+  echo "=====RAID Status:======"
+  RAID_INFO=$(sudo mdadm --detail /dev/md* 2>/dev/null)
+  if [[ -z "$RAID_INFO" ]]; then
+    echo " No RAID arrays detected."
+  else
+    echo "$RAID_INFO"
+  fi
 } > "$STATUS_FILE"
 
 # Send the report via email
-mail -s "Weekly System Status Report for $HOSTNAME" "$EMAIL" < "$STATUS_FILE"
+mail -s "Weekly System Status Report for $HOSTNAME" "$TO" < "$STATUS_FILE"
 
 # Clean up
 rm "$STATUS_FILE"

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Variables
-TO="<your_email_here>"
+TO="cjackson@nexusedgeit.com"
 HOSTNAME=$(hostname)
 DATE=$(date +"%m-%d-%Y %H:%M:%S")
 STATUS_FILE="/tmp/system_status.txt"
@@ -24,7 +24,7 @@ df -h | awk '
     $1 == "/dev/mapper/ubuntu--vg-ubuntu--lv" {
         printf "%-45s %-10s %-11s %-10s %-10s\n", $1, $2, $3, $4, $5
     }
-    $1 == "/dev/dm-1" {
+    $1 == "/dev/md127" {
         printf "%-63s %-11s %-11s %-12s %-11s\n", $1, $2, $3, $4, $5
     }
 '
@@ -34,18 +34,10 @@ df -h | awk '
   free -h | awk 'NR==2 { printf "%-15s %-13s %-16s %-16s %-18s %-18s\n", $2, $3, $4, $5, $6, $7 }'
   echo
   echo "=====RAID Status:======"
-  RAID_INFO=$(sudo mdadm --detail /dev/md* 2>/dev/null)
+  RAID_INFO=$(sudo mdadm --detail /dev/md127 | grep -E '/dev/md127|State :|Raid Level :|Array Size :|Raid Devices :|Persistence :|Number|active sync' 2>/dev/null)
   if [[ -z "$RAID_INFO" ]]; then
     echo " No RAID arrays detected."
   else
     echo "$RAID_INFO"
   fi
 } > "$STATUS_FILE"
-
-# Send the report via email
-mail -s "Weekly System Status Report for $HOSTNAME" "$TO" < "$STATUS_FILE"
-
-# Clean up
-rm "$STATUS_FILE"
-# Clean up
-rm "$STATUS_FILE"

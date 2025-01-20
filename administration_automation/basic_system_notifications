@@ -3,7 +3,7 @@
 # Variables
 TO="cjackson@nexusedgeit.com"
 HOSTNAME=$(hostname)
-DATE=$(date +"%m-%d-%Y %H:%M:%S")
+DATE=$(date +"%m-%d-%Y %I:%M:%S %p")
 STATUS_FILE="/tmp/system_status.txt"
 
 # Create a status report with improved formatting
@@ -12,7 +12,7 @@ STATUS_FILE="/tmp/system_status.txt"
   echo "=========================================="
   echo
   echo "=====Uptime:======"
-  printf " %-15s %s\n" "Current Time:" "$(date +"%H:%M:%S")"
+  printf " %-15s %s\n" "Current Time:" "$(date +"%I:%M:%S %p")"
   printf " %-19s %s\n" "Uptime:" "$(uptime -p)"
   printf " %-15s %s\n" "Load Average:" "$(uptime | awk -F'load average:' '{print $2}' | xargs)"
   echo

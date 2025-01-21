@@ -6,8 +6,8 @@ hostname=$(hostname)
 clear
 
 # Ask for SMTP relay credentials
-read -p "Enter the username for the SMTP relay: " username
-read -sp "Enter the password for the SMTP relay: " password
+read -p "Enter the username for the SMTP relay email address: " username
+read -sp "Enter the password for the SMTP relay email address: " password
 echo
 
 # Define relayhost

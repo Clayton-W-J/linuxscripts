@@ -73,6 +73,7 @@ smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt
 
 sender_canonical_maps = hash:/etc/postfix/sender_canonical
 EOF
+sudo systemctl restart postfix
 
 clear
 

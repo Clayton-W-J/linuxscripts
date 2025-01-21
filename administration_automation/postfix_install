@@ -14,7 +14,7 @@ echo
 relayhost="[smtp.nexusedgeit.com]:587"
 
 # Install Postfix
-sudo apt update && sudo apt install -yy postfix mailutils
+sudo apt update && sudo apt install mailutils postfix -yy
 
 clear
 

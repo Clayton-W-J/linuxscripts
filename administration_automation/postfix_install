@@ -20,6 +20,13 @@ smtp_sasl_security_options = noanonymous
 smtp_sasl_tls_security_options = noanonymous
 EOF"
 
+# Add sender_canonical_maps to the bottom of the main.cf file
+sudo bash -c "cat <<EOF >> /etc/postfix/main.cf
+
+# sender_canonical_maps: Used to rewrite sender email addresses
+sender_canonical_maps = hash:/etc/postfix/sender_canonical
+EOF"
+
 # Extract the relayhost value from main.cf
 relay_host=$(grep -i "^relayhost" /etc/postfix/main.cf | awk '{print $3}' | tr -d '[]')
 
@@ -59,3 +66,43 @@ sudo postmap /etc/postfix/sasl_passwd
 
 # Inform the user
 echo "SMTP credentials have been written to /etc/postfix/sasl_passwd"
+
+# Ask the user for the local user and alias
+echo "Enter the local user for the /etc/postfix/sender_canonical file:"
+read local_user
+
+echo "Enter the alias for the /etc/postfix/sender_canonical file:"
+read alias
+
+# Write the local_user and alias to /etc/postfix/sender_canonical
+echo "$local_user $alias" | sudo tee /etc/postfix/sender_canonical > /dev/null
+
+# Inform the user
+echo "The local user and alias have been written to /etc/postfix/sender_canonical."
+
+# Ensure correct permissions for the sender_canonical file
+sudo chmod 644 /etc/postfix/sender_canonical
+
+# Optional: Run postmap to generate the hash file for sender_canonical
+echo "Running postmap on /etc/postfix/sender_canonical to generate the hash file..."
+sudo postmap /etc/postfix/sender_canonical
+
+echo "Postmap has been executed."
+
+# Edit /etc/aliases with the same local_user and alias
+echo "Adding the local user and alias to /etc/aliases..."
+
+# Edit /etc/aliases with the same local_user and alias
+echo "Adding the local user and alias to /etc/aliases..."
+
+# Append the local user alias to /etc/aliases
+echo "$local_user: $alias" | sudo tee -a /etc/aliases > /dev/null
+
+# Run newaliases to apply the changes
+echo "Running newaliases to update alias database..."
+sudo newaliases
+
+echo "Aliases have been updated successfully."
+
+# Restart Postfix
+sudo systemctl restart postfix

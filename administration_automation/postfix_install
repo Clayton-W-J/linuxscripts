@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Update the package index and install Postfix
+sudo apt update && sudo apt install -y postfix
+
+# Modify the /etc/postfix/main.cf file
+sudo sed -i 's/^smtpd_tls_security_level=may/smtpd_tls_security_level=encrypt/' /etc/postfix/main.cf
+
+# Add smtp_tls_CAfile under smtp_tls_session_cache_database
+sudo sed -i "/^smtp_tls_session_cache_database = btree:\${data_directory}\/smtp_scache/a smtp_tls_CAfile = /etc/ssl/certs/ca-certificates.crt" /etc/postfix/main.cf
+
+# Add a blank line after inet_protocols = all
+sudo sed -i '/inet_protocols = all/a\\' /etc/postfix/main.cf
+
+sudo bash -c "cat <<EOF >> /etc/postfix/main.cf
+# Enable SMTP authentication
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_sasl_security_options = noanonymous
+smtp_sasl_tls_security_options = noanonymous
+EOF"
+
+# Extract the relayhost value from main.cf
+relay_host=$(grep -i "^relayhost" /etc/postfix/main.cf | awk '{print $3}' | tr -d '[]')
+
+# If relayhost is empty, prompt for it
+if [ -z "$relay_host" ]; then
+  echo "Enter your relay host for the /etc/postfix/main.cf file (e.g., smtp.example.com):"
+  read relay_host
+fi
+
+# Check if the relay_host includes a port number
+if [[ "$relay_host" =~ :([0-9]+)$ ]]; then
+  # Extract the relay host and port number
+  relay_host=$(echo $relay_host | sed 's/:.*//')  # Extracts the host part
+  relay_port=${BASH_REMATCH[1]}  # Extracts the port part
+else
+  # Default port if no port is provided
+  relay_port=587
+fi
+
+clear
+
+# Ask the user for SMTP credentials
+echo "Enter your username for the /etc/postfix/sasl_passwd file:"
+read sasl_username
+
+echo "Enter your password for the /etc/postfix/sasl_passwd file:"
+read -s sasl_password  # The -s option hides the password input for security
+
+# Write credentials to /etc/postfix/sasl_passwd
+echo "[$relay_host]:$relay_port $sasl_username:$sasl_password" | sudo tee /etc/postfix/sasl_passwd > /dev/null
+
+# Set appropriate permissions
+sudo chmod 600 /etc/postfix/sasl_passwd
+
+# Hash the credentials file for Postfix
+sudo postmap /etc/postfix/sasl_passwd
+
+# Inform the user
+echo "SMTP credentials have been written to /etc/postfix/sasl_passwd"

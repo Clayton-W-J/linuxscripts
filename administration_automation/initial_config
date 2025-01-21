@@ -2,6 +2,8 @@
 
 # This script is intended to be deployed to an Ubuntu 22.04LTS machine. Whether it be VM or baremetal.
 
+sudo apt update && sudo apt upgrade -yy
+
 # Function to output text in green
 function green_echo() {
   echo -e "\033[0;32m$1\033[0m" > /dev/tty

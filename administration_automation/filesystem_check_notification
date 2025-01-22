@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Plan to run this script against a clients data drive every Saturday. If an error is reported make sure to backup all client data before running the fsck fix. 
+
 # Variables
 TO="your_email_here@example.com"
 HOSTNAME=$(hostname)

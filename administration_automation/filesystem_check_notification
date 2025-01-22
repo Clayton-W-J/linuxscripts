@@ -8,9 +8,9 @@ TO="<emaill_address>"
 HOSTNAME=$(hostname)
 DATE=$(date +"%m-%d-%Y %I:%M:%S %p")
 STATUS_FILE="/tmp/filesystem_check.txt"
-DEVICE="/dev/sdX"                             #The drive you wish to run the check against
-MOUNT_POINT="<mount_point>"                   #Used to un-mount before the check and re-mount after the check.
-MAX_LINES=10
+DEVICE="/dev/sdX"                             # The drive you wish to run the check against
+MOUNT_POINT="<mount_point>"                   # Used to un-mount before the check and re-mount after the check.
+MAX_LINES=10                                  # Used to truncate the fsck log file if it is too large
 
 {
   echo "Filesystem Check Report for $HOSTNAME - $DATE"

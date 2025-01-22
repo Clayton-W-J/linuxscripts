@@ -1,48 +1,59 @@
 # Plan to run this script against a clients data drive every Saturday. If an error is reported make sure to backup all client data before running the fsck fix.
 # Remember to fill out the variables for your specific use case.
 
-#!/bin/bash 
+#!/bin/bash
 
 # Variables
-TO="your_email_here@example.com"
+TO="<emaill_address>"
 HOSTNAME=$(hostname)
 DATE=$(date +"%m-%d-%Y %I:%M:%S %p")
 STATUS_FILE="/tmp/filesystem_check.txt"
-DEVICE="<filesystem>"                      #The drive you wish to run the check against
-MOUNT_POINT="<mountpoint>"                 #Used to un-mount before the check and re-mount after the check.
-
-# Check if the device is mounted, unmount it if necessary
-if mountpoint -q "$MOUNT_POINT"; then
-  echo "Unmounting $DEVICE from $MOUNT_POINT..."
-  umount "$DEVICE"
-fi
+DEVICE="/dev/sdX"                             #The drive you wish to run the check against
+MOUNT_POINT="<mount_point>"                   #Used to un-mount before the check and re-mount after the check.
+MAX_LINES=10
 
 {
-  echo "System Status Report for $HOSTNAME - $DATE"
+  echo "Filesystem Check Report for $HOSTNAME - $DATE"
   echo "=========================================="
-  
-  # Check the filesystem in read-only mode (-n flag prevents changes)
+
+  # Check if the device is mounted
+  if mountpoint -q "$MOUNT_POINT"; then
+    echo "Unmounting $DEVICE from $MOUNT_POINT..."
+    umount "$DEVICE"
+  fi
+
+  # Run fsck to check for errors
   echo "Running fsck on $DEVICE..."
   fsck -n "$DEVICE"
-  
-  # Check the exit status of fsck
+
   FSCK_EXIT_CODE=$?
   echo "fsck completed with exit code: $FSCK_EXIT_CODE"
   case $FSCK_EXIT_CODE in
     0) echo "Filesystem is clean, no errors found." ;;
     1) echo "Filesystem errors were corrected." ;;
-    2) echo "Filesystem errors were detected but not corrected." ;;
+    2) echo "Filesystem errors were detected but not corrected. Manual intervention required." ;;
+    4) echo "Filesystem errors left uncorrected. Manual check is mandatory." ;;
+    8) echo "Operational error. Check the device or system." ;;
+    16) echo "Filesystem check was interrupted." ;;
+    32) echo "Filesystem is unmounted, but could not complete the operation." ;;
+    128) echo "Shared library error." ;;
     *) echo "An unknown error occurred during the fsck check." ;;
   esac
 
-  # Attempt to remount the filesystem
-  echo "Remounting $DEVICE to $MOUNT_POINT..."
-  mount "$DEVICE" "$MOUNT_POINT" && echo "Remount successful." || echo "Failed to remount $DEVICE."
-
 } > "$STATUS_FILE"
 
-# Send the report via email
-mail -s "Weekly Filesystem Check Report for $HOSTNAME" "$TO" < "$STATUS_FILE"
+# Truncate the output if too large
+if [ "$(wc -l < "$STATUS_FILE")" -gt "$MAX_LINES" ]; then
+  echo "Output too large. Truncating to the last $MAX_LINES lines." >> "$STATUS_FILE"
+  tail -n "$MAX_LINES" "$STATUS_FILE" > "${STATUS_FILE}_trimmed"
+  mv "${STATUS_FILE}_trimmed" "$STATUS_FILE"
+fi
+
+# Compress the full report
+gzip -c "$STATUS_FILE" > "${STATUS_FILE}.gz"
+
+# Send the email with the summary and compressed attachment
+echo "The filesystem check report is attached as a compressed file." | mail -s "Weekly System Status Report for $HOSTNAME" -A "${STATUS_FILE}.gz" "$TO"
 
 # Clean up
-rm "$STATUS_FILE"
+rm -f "$STATUS_FILE" "${STATUS_FILE}.gz"

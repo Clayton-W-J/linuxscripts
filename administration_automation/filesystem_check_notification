@@ -23,7 +23,7 @@ fi
   
   # Check the filesystem in read-only mode (-n flag prevents changes)
   echo "Running fsck on $DEVICE..."
-  fsck -Vn "$DEVICE"
+  fsck -n "$DEVICE"
   
   # Check the exit status of fsck
   FSCK_EXIT_CODE=$?

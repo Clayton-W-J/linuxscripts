@@ -53,7 +53,7 @@ fi
 gzip -c "$STATUS_FILE" > "${STATUS_FILE}.gz"
 
 # Send the email with the summary and compressed attachment
-echo "The filesystem check report is attached as a compressed file." | mail -s "Weekly System Status Report for $HOSTNAME" -A "${STATUS_FILE}.gz" "$TO"
+echo "The filesystem check report is attached as a compressed file." | mail -s "Weekly Filesystem Check Report for $HOSTNAME" -A "${STATUS_FILE}.gz" "$TO"
 
 # Clean up
 rm -f "$STATUS_FILE" "${STATUS_FILE}.gz"

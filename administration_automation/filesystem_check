@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Variables
+TO="your_email_here@example.com"
+HOSTNAME=$(hostname)
+DATE=$(date +"%m-%d-%Y %I:%M:%S %p")
+STATUS_FILE="/tmp/filesystem_check.txt"
+DEVICE="/dev/sdb1"
+MOUNT_POINT="/mnt/data"
+
+# Check if the device is mounted, unmount it if necessary
+if mountpoint -q "$MOUNT_POINT"; then
+  echo "Unmounting $DEVICE from $MOUNT_POINT..."
+  umount "$DEVICE"
+fi
+
+{
+  echo "System Status Report for $HOSTNAME - $DATE"
+  echo "=========================================="
+  
+  # Check the filesystem in read-only mode (-n flag prevents changes)
+  echo "Running fsck on $DEVICE..."
+  fsck -Vn "$DEVICE"
+  
+  # Check the exit status of fsck
+  FSCK_EXIT_CODE=$?
+  echo "fsck completed with exit code: $FSCK_EXIT_CODE"
+  case $FSCK_EXIT_CODE in
+    0) echo "Filesystem is clean, no errors found." ;;
+    1) echo "Filesystem errors were corrected." ;;
+    2) echo "Filesystem errors were detected but not corrected." ;;
+    *) echo "An unknown error occurred during the fsck check." ;;
+  esac
+
+  # Attempt to remount the filesystem
+  echo "Remounting $DEVICE to $MOUNT_POINT..."
+  mount "$DEVICE" "$MOUNT_POINT" && echo "Remount successful." || echo "Failed to remount $DEVICE."
+
+} > "$STATUS_FILE"
+
+# Send the report via email
+mail -s "Weekly System Status Report for $HOSTNAME" "$TO" < "$STATUS_FILE"
+
+# Clean up
+rm "$STATUS_FILE"
+
+echo "Filesystem check completed, report sent to $TO."

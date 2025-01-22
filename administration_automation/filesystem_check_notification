@@ -8,8 +8,8 @@ TO="your_email_here@example.com"
 HOSTNAME=$(hostname)
 DATE=$(date +"%m-%d-%Y %I:%M:%S %p")
 STATUS_FILE="/tmp/filesystem_check.txt"
-DEVICE="/dev/sdb1"                      #The drive you wish to run the check against
-MOUNT_POINT="/mnt/data"                 #Used to un-mount before the check and re-mount after the check.
+DEVICE="<filesystem>"                      #The drive you wish to run the check against
+MOUNT_POINT="<mountpoint>"                 #Used to un-mount before the check and re-mount after the check.
 
 # Check if the device is mounted, unmount it if necessary
 if mountpoint -q "$MOUNT_POINT"; then

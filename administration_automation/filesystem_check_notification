@@ -4,12 +4,12 @@
 #!/bin/bash
 
 # Variables
-TO="cjackson@nexusedgeit.com"
+TO="<your_email_here>"
 HOSTNAME=$(hostname)
 DATE=$(date +"%m-%d-%Y %I:%M:%S %p")
 STATUS_FILE="/tmp/filesystem_check.txt"
-DEVICE="/dev/sdb1"                             #The drive you wish to run the check against
-MOUNT_POINT="/mnt/data"                   #Used to un-mount before the check and re-mount after the check.
+DEVICE="/dev/sdX"                             #The drive you wish to run the check against
+MOUNT_POINT="<mount_point>"                   #Used to un-mount before the check and re-mount after the check.
 MAX_LINES=10
 
 {

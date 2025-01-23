@@ -1,19 +1,19 @@
-# Plan to run this script against a clients data drive every Saturday. If an error is reported make sure to backup all client data before running the fsck fix.
+# Plan to run this script against a clients data drive every Saturday. If an error is reported make sure to backu>
 # Remember to fill out the variables for your specific use case.
 
 #!/bin/bash
 
 # Variables
-TO="<emaill_address>"
+TO="cjackson@nexusedgeit.com"
 HOSTNAME=$(hostname)
 DATE=$(date +"%m-%d-%Y %I:%M:%S %p")
 STATUS_FILE="/tmp/filesystem_check.txt"
-DEVICE="/dev/sdX"                             # The drive you wish to run the check against
-MOUNT_POINT="<mount_point>"                   # Used to un-mount before the check and re-mount after the check.
-MAX_LINES=10                                  # Used to truncate the fsck log file if it is too large
+DEVICE="/dev/sdb1"                             #The drive you wish to run the check against
+MOUNT_POINT="/mnt/data"                   #Used to un-mount before the check and re-mount after the check.
+MAX_LINES=10
 
 {
-  echo "Filesystem Check Report for $HOSTNAME - $DATE"
+  echo "Weekly Filesystem Check Report for $HOSTNAME - $DATE"
   echo "=========================================="
 
   # Check if the device is mounted
@@ -44,16 +44,12 @@ MAX_LINES=10                                  # Used to truncate the fsck log fi
 
 # Truncate the output if too large
 if [ "$(wc -l < "$STATUS_FILE")" -gt "$MAX_LINES" ]; then
-  echo "Output too large. Truncating to the last $MAX_LINES lines." >> "$STATUS_FILE"
   tail -n "$MAX_LINES" "$STATUS_FILE" > "${STATUS_FILE}_trimmed"
   mv "${STATUS_FILE}_trimmed" "$STATUS_FILE"
 fi
 
-# Compress the full report
-gzip -c "$STATUS_FILE" > "${STATUS_FILE}.gz"
-
-# Send the email with the summary and compressed attachment
-echo "The filesystem check report is attached as a compressed file." | mail -s "Weekly Filesystem Check Report for $HOSTNAME" -A "${STATUS_FILE}.gz" "$TO"
+# Send the email with the truncated summary
+mail -s "Weekly Filesystem Check Report for $HOSTNAME" "$TO" < "$STATUS_FILE"
 
 # Clean up
-rm -f "$STATUS_FILE" "${STATUS_FILE}.gz"
+rm -f "$STATUS_FILE"

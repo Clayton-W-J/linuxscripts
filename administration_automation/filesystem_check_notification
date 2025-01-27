@@ -1,4 +1,4 @@
-# Plan to run this script against a clients data drive every Saturday. If an error is reported make sure to backu>
+# Plan to run this script against a clients data drive every Saturday. If an error is reported make sure to backup user data before running an fsck fix.
 # Remember to fill out the variables for your specific use case.
 
 #!/bin/bash

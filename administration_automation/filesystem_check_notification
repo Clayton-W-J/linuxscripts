@@ -10,7 +10,7 @@ DATE=$(date +"%m-%d-%Y %I:%M:%S %p")
 STATUS_FILE="/tmp/filesystem_check.txt"
 DEVICE="/dev/sdX"                             #The drive you wish to run the check against
 MOUNT_POINT="<mount_point>"                   #Used to un-mount before the check and re-mount after the check.
-MAX_LINES=10
+MAX_LINES=10                                  #Truncates the output of fsck if output is too long for an email.
 
 {
   echo "Weekly Filesystem Check Report for $HOSTNAME - $DATE"

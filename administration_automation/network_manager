@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Define the netplan configuration file path
+NETPLAN_FILE="/etc/netplan/00-installer-config.yaml"
+
+# Check if the file exists
+if [[ ! -f "$NETPLAN_FILE" ]]; then
+    echo "Netplan configuration file not found: $NETPLAN_FILE"
+    exit 1
+fi
+
+# Check if the renderer is already set to NetworkManager
+if grep -q "renderer: NetworkManager" "$NETPLAN_FILE"; then
+    echo "Renderer is already set to NetworkManager. No changes needed."
+    exit 0
+fi
+
+# Ask the user if they want to change the renderer
+read -p "Do you want to change the network renderer to NetworkManager? (y/n): " choice
+case "$choice" in
+    y|Y ) echo "Updating the renderer to NetworkManager...";;
+    n|N ) echo "Aborting."; exit 0;;
+    * ) echo "Invalid input. Exiting."; exit 1;;
+esac
+
+# Use sed to insert "renderer: NetworkManager" after the "version:" line
+sudo sed -i '/^\s*version:/a \  renderer: NetworkManager' "$NETPLAN_FILE"
+
+# Notify the user of success
+echo "Renderer successfully updated to NetworkManager."
+
+# Apply the new netplan configuration
+sudo netplan apply
+
+echo "Netplan configuration applied."

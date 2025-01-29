@@ -1,10 +1,11 @@
 #!/bin/bash
-# Script to run vm_backup and email job status
+# Script to run a veeam backup job and email job status
 
-JOBNAME=vm_backup
+JOBNAME=<veeam_job_name_here>
 SCRIPT_DIR=/etc/veeam/scripts
 LOG_DIR=/var/log/veeam/Backup/$JOBNAME
 JOB_INFO=`veeamconfig job info --name $JOBNAME`
+TO=<your_email_here>
 
 #start backup job
 veeamconfig job start --name $JOBNAME 1> /etc/veeam/scripts/$JOBNAME.tmp 2> /etc/veeam/scripts/$JOBNAME.err
@@ -15,10 +16,12 @@ LOGFILE=$SESSION_LOG_DIR/Job.log
 SESSION_INFO=`veeamconfig session info --id $SESSION_ID | grep -v UUID`
 
 # check if another job is running
+
 if [ -s $JOBNAME.err ]
+
 then
      ERROR_MSG=`grep Error $SCRIPT_DIR/$JOBNAME.err`
-     echo "$ERROR_MSG" | mailx -s "VAL Job $JOBNAME Error" -r VeeamLinuxAgent@email.local  recipient@email.com
+     echo "$ERROR_MSG" | mail -s "VAL Job $JOBNAME Error" $TO
 fi
 
 #check if job is running
@@ -33,17 +36,17 @@ STATUS=`veeamconfig session info --id $SESSION_ID | grep State | awk  '{print $2
 if [ $STATUS = 'Warning' ]
 then
      WARN_MSG=`veeamconfig session log --id $SESSION_ID | grep warn | awk '{print $6,$7,$8,$9}'`
-     echo -e "Job $JOBNAME Successful with following $STATUS:\n\n$WARN_MSG\n\nJOB INFO:\n$JOB_INFO" | mailx -s "VAL Job $JOBNAME $STATUS" -r VeeamLinuxAgent@email.local  recipient@email.com
+     echo -e "Job $JOBNAME Successful with following $STATUS:\n\n$WARN_MSG\n\nJOB INFO:\n$JOB_INFO" | mail -s "VAL Job $JOBNAME $STATUS" $TO
 fi
 
 if [ $STATUS = 'Failed' ]
 then
-     echo -e "Job $JOBNAME $STATUS. See attached logfile for error details.\n\nJOB INFO:\n$JOB_INFO" | mailx -s "VAL Job $JOBNAME $STATUS" -a $LOGFILE -r VeeamLinuxAgent@email.local  recipient@email.com
+     echo -e "Job $JOBNAME $STATUS. See attached logfile for error details.\n\nJOB INFO:\n$JOB_INFO" | mail -s "VAL Job $JOBNAME $STATUS" -a $LOGFILE $TO
 fi
 
 if [ $STATUS = 'Success' ]
 then
-     echo -e "Job $JOBNAME $STATUS.\n\nJOB INFO:\n$JOB_INFO" | mailx -s "VAL Job $JOBNAME $STATUS" -r VeeamLinuxAgent@labinf.local davide.depaoli@labinf.it
+     echo -e "Job $JOBNAME $STATUS.\n\nJOB INFO:\n$JOB_INFO" | mail -s "VAL Job $JOBNAME $STATUS" $TO
 fi
 
 rm -f $SCRIPT_DIR/$JOBNAME.tmp $SCRIPT_DIR/$JOBNAME.err

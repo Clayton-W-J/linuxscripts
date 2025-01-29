@@ -6,7 +6,7 @@ HOSTNAME=$(hostname)
 DATE=$(date +"%m-%d-%Y %I:%M:%S %p")
 STATUS_FILE="/tmp/system_status.txt"
 
-# Create a status report with improved formatting
+# Create a status report with formatting
 {
   echo "System Status Report for $HOSTNAME - $DATE"
   echo "=========================================="

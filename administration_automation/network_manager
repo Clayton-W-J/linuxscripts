@@ -10,7 +10,7 @@ if [[ ! -f "$NETPLAN_FILE" ]]; then
 fi
 
 # Check if the renderer is already set to NetworkManager
-if grep -q "renderer: NetworkManager" "$NETPLAN_FILE"; then
+if grep -q "^\s*renderer:\s*NetworkManager" "$NETPLAN_FILE"; then
     echo "Renderer is already set to NetworkManager. No changes needed."
     exit 0
 fi
@@ -23,8 +23,15 @@ case "$choice" in
     * ) echo "Invalid input. Exiting."; exit 1;;
 esac
 
-# Use sed to insert "renderer: NetworkManager" after the "version:" line
-sudo sed -i '/^\s*version:/a \  renderer: NetworkManager' "$NETPLAN_FILE"
+# Extract the indentation of the 'version:' line
+INDENTATION=$(grep -Eo '^\s*version:' "$NETPLAN_FILE" | sed 's/version://')
+
+# Construct the new line with the same indentation
+NEW_LINE="${INDENTATION}renderer: NetworkManager"
+
+# Insert the new line after the "version:" line while maintaining indentation
+sudo sed -i "/^\s*version:/a\\
+${NEW_LINE}" "$NETPLAN_FILE"
 
 # Notify the user of success
 echo "Renderer successfully updated to NetworkManager."

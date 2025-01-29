@@ -21,7 +21,7 @@ if [ -s $JOBNAME.err ]
 
 then
      ERROR_MSG=`grep Error $SCRIPT_DIR/$JOBNAME.err`
-     echo "$ERROR_MSG" | mail -s "VAL Job $JOBNAME Error" $TO
+     echo "$ERROR_MSG" | mail -s "Veeam Job $JOBNAME Error" $TO
 fi
 
 #check if job is running
@@ -36,17 +36,17 @@ STATUS=`veeamconfig session info --id $SESSION_ID | grep State | awk  '{print $2
 if [ $STATUS = 'Warning' ]
 then
      WARN_MSG=`veeamconfig session log --id $SESSION_ID | grep warn | awk '{print $6,$7,$8,$9}'`
-     echo -e "Job $JOBNAME Successful with following $STATUS:\n\n$WARN_MSG\n\nJOB INFO:\n$JOB_INFO" | mail -s "VAL Job $JOBNAME $STATUS" $TO
+     echo -e "Job $JOBNAME Successful with following $STATUS:\n\n$WARN_MSG\n\nJOB INFO:\n$JOB_INFO" | mail -s "Veeam Job $JOBNAME $STATUS" $TO
 fi
 
 if [ $STATUS = 'Failed' ]
 then
-     echo -e "Job $JOBNAME $STATUS. See attached logfile for error details.\n\nJOB INFO:\n$JOB_INFO" | mail -s "VAL Job $JOBNAME $STATUS" -a $LOGFILE $TO
+     echo -e "Job $JOBNAME $STATUS. See attached logfile for error details.\n\nJOB INFO:\n$JOB_INFO" | mail -s "Veeam Job $JOBNAME $STATUS" -a $LOGFILE $TO
 fi
 
 if [ $STATUS = 'Success' ]
 then
-     echo -e "Job $JOBNAME $STATUS.\n\nJOB INFO:\n$JOB_INFO" | mail -s "VAL Job $JOBNAME $STATUS" $TO
+     echo -e "Job $JOBNAME $STATUS.\n\nJOB INFO:\n$JOB_INFO" | mail -s "Veeam Job $JOBNAME $STATUS" $TO
 fi
 
 rm -f $SCRIPT_DIR/$JOBNAME.tmp $SCRIPT_DIR/$JOBNAME.err

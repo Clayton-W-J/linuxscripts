@@ -16,7 +16,6 @@ LOGFILE=$SESSION_LOG_DIR/Job.log
 SESSION_INFO=`veeamconfig session info --id $SESSION_ID | grep -v UUID`
 
 # check if another job is running
-
 if [ -s $JOBNAME.err ]
 
 then

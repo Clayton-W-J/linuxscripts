@@ -51,5 +51,8 @@ fi
 # Send the email with the truncated summary
 mail -s "Weekly Filesystem Check Report for $HOSTNAME" "$TO" < "$STATUS_FILE"
 
+# mount device again
+mount $DEVICE $MOUNT_POINT
+
 # Clean up
 rm -f "$STATUS_FILE"

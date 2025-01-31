@@ -1,0 +1,11 @@
+#!/bin/bash
+
+# Set email recipient
+EMAIL="your-email@example.com"
+SUBJECT="EXT4 Fragmentation Report - $(hostname)"
+
+# Run e4defrag check and capture only the relevant lines
+FRAG_REPORT=$(sudo e4defrag -c / | grep -E 'Fragmentation score|no problem|needs defrag|This device|Done')
+
+# Send the output via email
+echo -e "EXT4 Fragmentation Report for $(hostname):\n\n$FRAG_REPORT" | mailx -s "$SUBJECT" "$EMAIL"

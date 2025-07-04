@@ -139,16 +139,16 @@ USER_PASSWORD=$(echo "$USER_PASSWORD" | fold -w1 | shuf | tr -d '\n') # Shuffle 
 green_echo "$USERNAME:$USER_PASSWORD" | sudo chpasswd
 # Creating ansible sudoers file and allowing all sudo commands to be run by Ansible user
 # Define the sudoers file path
-SUDOERS_FILE="/etc/sudoers.d/ansible"
+SUDOERS_FILE=/etc/sudoers.d/ansible
 # Create the sudoers file with the required permissions
 green_echo "Creating sudoers file for ansible user..."
-green_echo "ansible ALL=(ALL) NOPASSWD: ALL" | sudo tee "$SUDOERS_FILE" > /dev/null
+sudo bash -c "echo 'ansible ALL=(ALL) NOPASSWD: ALL' > $SUDOERS_FILE"
 # Set ownership to root
 green_echo "Setting ownership to root..."
-sudo chown root:root "$SUDOERS_FILE"
+sudo chown root:root $SUDOERS_FILE
 # Set correct permissions
 green_echo "Setting permissions to 440..."
-sudo chmod 440 "$SUDOERS_FILE"
+sudo chmod 440 $SUDOERS_FILE
 green_echo "Sudoers configuration for 'ansible' user complete."
 
 # Configure the SSH key

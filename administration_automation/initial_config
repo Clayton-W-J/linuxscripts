@@ -136,11 +136,21 @@ sudo adduser --disabled-password --gecos "" "$USERNAME"
 green_echo "Generating a secure password for the user '$USERNAME'..."
 USER_PASSWORD=$(< /dev/urandom tr -dc 'A-Z' | head -c 3)$(< /dev/urandom tr -dc '@#$%&*' | head -c 3)$(< /dev/urandom tr -dc 'a-z0-9' | head -c 12 | shuf | tr -d '\n')
 USER_PASSWORD=$(echo "$USER_PASSWORD" | fold -w1 | shuf | tr -d '\n') # Shuffle to randomize order
-echo "$USERNAME:$USER_PASSWORD" | sudo chpasswd
-# Grant limited sudo privileges for updating the system
-green_echo "Granting '$USERNAME' permission to update the system without a password..."
-VISUDO_LINE="$USERNAME ALL=(ALL) NOPASSWD: /usr/bin/apt update -y, /usr/bin/apt upgrade -y, /usr/bin/apt autoremove -y"
-echo "$VISUDO_LINE" | sudo EDITOR='tee -a' visudo
+green_echo "$USERNAME:$USER_PASSWORD" | sudo chpasswd
+# Creating ansible sudoers file and allowing all sudo commands to be run by Ansible user
+# Define the sudoers file path
+SUDOERS_FILE="/etc/sudoers.d/ansible"
+# Create the sudoers file with the required permissions
+green_echo "Creating sudoers file for ansible user..."
+green_echo "ansible ALL=(ALL) NOPASSWD: ALL" | sudo tee "$SUDOERS_FILE" > /dev/null
+# Set ownership to root
+green_echo "Setting ownership to root..."
+sudo chown root:root "$SUDOERS_FILE"
+# Set correct permissions
+green_echo "Setting permissions to 440..."
+sudo chmod 440 "$SUDOERS_FILE"
+green_echo "Sudoers configuration for 'ansible' user complete."
+
 # Configure the SSH key
 green_echo "Adding the public SSH key to /home/$USERNAME/.ssh/authorized_keys..."
 USER_HOME="/home/$USERNAME"

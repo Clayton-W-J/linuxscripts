@@ -34,3 +34,5 @@ sudo -u "$USERNAME" mkdir -p "$USER_HOME/.ssh"
 echo "$SSH_PUBLIC_KEY" | sudo -u "$USERNAME" tee "$USER_HOME/.ssh/authorized_keys" > /dev/null
 sudo -u "$USERNAME" chmod 600 "$USER_HOME/.ssh/authorized_keys"
 sudo -u "$USERNAME" chmod 700 "$USER_HOME/.ssh"
+
+ echo "- Ansible password: $USER_PASSWORD"

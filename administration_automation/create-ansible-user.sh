@@ -1,6 +1,6 @@
-# This is a standalone script to create an ansible user, set password, import public SSH key, and add the ansible sudoers file for Ansible automation purposes.  
-
 #!/bin/bash
+
+# This is a standalone script to create an ansible user, set password, import public SSH key, and add the ansible sudoers file for Ansible automation purposes.
  
 # Define the username and public SSH key
 USERNAME="ansible"

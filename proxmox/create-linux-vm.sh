@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# This script lays the foundation of the logic behind automating the act of deploying a VM on Proxmox
+
 # -------------------------------
 # User-defined variables
 # -------------------------------

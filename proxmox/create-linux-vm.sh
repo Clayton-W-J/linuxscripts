@@ -8,7 +8,7 @@
 VMID=101                   # Must be unique on the node
 NAME="test"                # Replace with your desired name
 ISO_STORAGE="local"        # Storage name where ISO is stored
-ISO_FILE="/var/lib/vz/template/iso/"  # Path relative to ISO_STORAGE
+ISO_FILE="/var/lib/vz/template/iso/ubuntu-22.04.5-live-server-amd64.iso"  # Path relative to ISO_STORAGE
 DISK_STORAGE="vmdisk0"     # Storage for VM disk and EFI
 DISK_SIZE="32G"            # Replace as needed
 CORES=2                    # Number of cores

@@ -5,15 +5,21 @@
 # -------------------------------
 # User-defined variables
 # -------------------------------
-VMID=101                   # Must be unique on the node
+VMID=117                   # Must be unique on the node
 NAME="test"                # Replace with your desired name
+TAGS="mgmt"
 ISO_STORAGE="local"        # Storage name where ISO is stored
-ISO_FILE="/var/lib/vz/template/iso/ubuntu-22.04.5-live-server-amd64.iso"  # Path relative to ISO_STORAGE
+ISO_FILE="iso/ubuntu-22.04.5-live-server-amd64.iso"  # Path relative to ISO_STORAGE
 DISK_STORAGE="vmdisk0"     # Storage for VM disk and EFI
 DISK_SIZE="32G"            # Replace as needed
 CORES=2                    # Number of cores
 MEMORY=2048                # Memory in MB
 EFI_STORAGE="vmdisk0"
+BRIDGE="vmbr0"             # Adjust based on your setup
+VLAN_TAG=999               # Desired VLAN
+NUM=${DISK_SIZE%G}         # Extract numeric portion of $DISK_SIZE
+NUM_MINUS_ONE=$((NUM - 1)) # Subtract 1 from $NUM
+NEW_DISK_SIZE="${NUM_MINUS_ONE}G" # New Disk Size
 
 # -------------------------------
 # VM Creation
@@ -28,6 +34,7 @@ qm create $VMID \
   --agent enabled=1 \
   --bios ovmf \
   --efidisk0 ${EFI_STORAGE}:1,efitype=4m,pre-enrolled-keys=1 \
+  --scsi0 $DISK_STORAGE:1,backup=0,discard=on,size=$DISK_SIZE,ssd=1 \
   --machine q35 \
   --cpu host \
   --numa 1 \
@@ -36,19 +43,21 @@ qm create $VMID \
   --memory $MEMORY \
   --balloon 0 \
   --onboot 1 \
-  --tags mgmt
+  --tags $TAGS
 
 # Attach ISO
 qm set $VMID \
   --ide2 ${ISO_STORAGE}:$ISO_FILE,media=cdrom
 
-# Add Disk
-qm set $VMID \
-  --scsi0 ${DISK_STORAGE}:$DISK_SIZE,discard=on,ssd=1,backup=0
+# Resize scsi0
+qm resize $VMID scsi0 +$NEW_DISK_SIZE
 
-# Optional: Enable UEFI
+# Set Network with VLAN
 qm set $VMID \
-  --efidisk0 ${EFI_STORAGE}:1,efitype=4m,pre-enrolled-keys=1
+  --net0 virtio,bridge=${BRIDGE},tag=${VLAN_TAG}
+
+# Start the VM
+qm start $VMID
 
 # Done
-echo "VM $VMID ($NAME) created."
+echo "VM $VMID ($NAME) created with VLAN $VLAN_TAG on $BRIDGE."

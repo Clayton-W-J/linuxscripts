@@ -2,6 +2,8 @@
 
 # This is a script to finalize Ubuntu VM configuration in Proxmox
 
+clear
+
 # -------------------------------
 # Hostname Configuration (Interactive)
 # -------------------------------

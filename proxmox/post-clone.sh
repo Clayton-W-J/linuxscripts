@@ -1,32 +1,41 @@
-#/bin/bash
+#!/bin/bash
 
-# This is a very sloppy script to wrap up my automated VM deployment on Proxmox
-
-# -------------------------------
-# Manually defined variables Start
-# -------------------------------
-
-NEW_HOSTNAME=""   # Set New Hostname
+# This is a script to finalize Ubuntu VM configuration in Proxmox
 
 # -------------------------------
-# Manually defined variables End
+# Hostname Configuration (Interactive)
 # -------------------------------
+echo ""
+echo "=== Hostname Configuration ==="
+read -rp "Enter the new hostname for this VM: " NEW_HOSTNAME
 
-# Regenerate Host Keys due to template having them removed
-sudo /usr/bin/ssh-keygen -A
-sudo systemctl restart sshd
+if [[ -z "$NEW_HOSTNAME" ]]; then
+  echo "❌ Hostname cannot be empty. Exiting."
+  exit 1
+fi
 
-# Set the hostname
 echo "Setting hostname to $NEW_HOSTNAME..."
 sudo hostnamectl set-hostname "$NEW_HOSTNAME"
+
 # Update /etc/hosts
 echo "Updating /etc/hosts file..."
-sudo sed -i "s/127.0.1.1.*/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
+if grep -q "127.0.1.1" /etc/hosts; then
+  sudo sed -i "s/127.0.1.1.*/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
+else
+  echo "127.0.1.1    $NEW_HOSTNAME" | sudo tee -a /etc/hosts > /dev/null
+fi
+
+# -------------------------------
+# Regenerate SSH Host Keys
+# -------------------------------
+echo ""
+echo "Regenerating SSH host keys..."
+sudo /usr/bin/ssh-keygen -A
+sudo systemctl restart sshd
 
 # -------------------------------
 # Netplan Configuration (Interactive)
 # -------------------------------
-
 echo ""
 echo "=== Netplan Static IP Configuration ==="
 
@@ -57,4 +66,5 @@ EOF
 echo "Applying Netplan changes..."
 sudo netplan apply
 
-echo "✅ Network configuration complete."
+echo ""
+echo "✅ Configuration complete!"

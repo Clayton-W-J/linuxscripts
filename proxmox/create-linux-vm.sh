@@ -1,19 +1,19 @@
 #!/bin/bash
 
 # -------------------------------
-# Default values
+# Default Values
 # -------------------------------
-TEMPLATE_ID=10000              # ID of your template VM
-DISK_STORAGE="vmdisk0"
-DEFAULT_DISK_SIZE=32         # GB (number only for comparison)
-DEFAULT_CORES=2
-DEFAULT_MEMORY=2048          # MB
-DEFAULT_BRIDGE="vmbr0"
-DEFAULT_VLAN=1
-DEFAULT_TAGS="mgmt"
+TEMPLATE_ID=10000            # ID of your template VM
+DISK_STORAGE="vmdisk0"       # Default Storage device used
+DEFAULT_DISK_SIZE=32         # Default Storage Count in GB (number only for comparison)
+DEFAULT_CORES=2              # Default Core Count
+DEFAULT_MEMORY=2048          # Default Memory Amount in MB
+DEFAULT_BRIDGE="vmbr0"       # Default Network Bridge
+DEFAULT_VLAN=1               # Default VLAN
+DEFAULT_TAGS="mgmt"          # Default VM Tag
 
 # -------------------------------
-# Manually defined variables
+# Manually Defined VM Options
 # -------------------------------
 VMID=
 NAME=""
@@ -25,7 +25,7 @@ VLAN=$DEFAULT_VLAN
 TAGS=""
 
 # -------------------------------
-# Validation
+# Storage Validation
 # -------------------------------
 if [[ -z "$VMID" || -z "$NAME" ]]; then
   echo "Usage: $0 <vmid> <name> [disk_size] [cores] [memory] [bridge] [vlan] [tags]"

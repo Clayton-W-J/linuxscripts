@@ -100,7 +100,7 @@ policy_out: ACCEPT
 
 [RULES]
 # Default rule example:
-IN ACCEPT -i net0 -source 10.10.10.0/24 -dest 10.10.99.0/24 -log nolog
+IN ACCEPT -i net0 -source 10.10.10.0/24 -dest 10.10.10.0/24 -log nolog
 
 # Custom rules can be added below:
 EOF

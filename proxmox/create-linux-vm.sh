@@ -5,18 +5,18 @@
 # -------------------------------
 # User-defined variables
 # -------------------------------
-VMID=117                   # Must be unique on the node
-NAME="test"                # Replace with your desired name
-TAGS="mgmt"
+VMID=<name>                   # Must be unique on the node
+NAME="some name"                # Replace with your desired name
+TAGS="some tags"
 ISO_STORAGE="local"        # Storage name where ISO is stored
 ISO_FILE="iso/ubuntu-22.04.5-live-server-amd64.iso"  # Path relative to ISO_STORAGE
 DISK_STORAGE="vmdisk0"     # Storage for VM disk and EFI
-DISK_SIZE="32G"            # Replace as needed
+DISK_SIZE="<size>G"            # Replace as needed
 CORES=2                    # Number of cores
 MEMORY=2048                # Memory in MB
 EFI_STORAGE="vmdisk0"
 BRIDGE="vmbr0"             # Adjust based on your setup
-VLAN_TAG=999               # Desired VLAN
+VLAN_TAG=1               # Desired VLAN
 NUM=${DISK_SIZE%G}         # Extract numeric portion of $DISK_SIZE
 NUM_MINUS_ONE=$((NUM - 1)) # Subtract 1 from $NUM
 NEW_DISK_SIZE="${NUM_MINUS_ONE}G" # New Disk Size
@@ -35,7 +35,6 @@ qm create $VMID \
   --bios ovmf \
   --efidisk0 ${EFI_STORAGE}:1,efitype=4m,pre-enrolled-keys=1 \
   --scsi0 $DISK_STORAGE:1,backup=0,discard=on,size=$DISK_SIZE,ssd=1 \
-  --machine q35 \
   --cpu host \
   --numa 1 \
   --sockets 1 \

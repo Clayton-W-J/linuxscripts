@@ -59,13 +59,6 @@ qm set $VMID \
 # Resize disk
 qm resize $VMID scsi0 ${DISK_SIZE}G
 
-# Add cloud-init drive
-qm set $VMID \
-  --ide2 ${DISK_STORAGE}:cloudinit \
-  --boot order=scsi0 \
-  --serial0 socket \
-  --vga serial0
-
 # Start VM
 qm start $VMID
 

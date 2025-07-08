@@ -1,62 +1,72 @@
 #!/bin/bash
 
-# This script lays the foundation of the logic behind automating the act of deploying a VM on Proxmox
+# -------------------------------
+# Default values
+# -------------------------------
+TEMPLATE_ID=10000              # ID of your template VM
+DISK_STORAGE="vmdisk0"
+DEFAULT_DISK_SIZE=32         # GB (number only for comparison)
+DEFAULT_CORES=2
+DEFAULT_MEMORY=2048          # MB
+DEFAULT_BRIDGE="vmbr0"
+DEFAULT_VLAN=1
+DEFAULT_TAGS="mgmt"
 
 # -------------------------------
-# User-defined variables
+# Manually defined variables
 # -------------------------------
-VMID=<name>                   # Must be unique on the node
-NAME="some name"                # Replace with your desired name
-TAGS="some tags"
-ISO_STORAGE="local"        # Storage name where ISO is stored
-ISO_FILE="iso/ubuntu-22.04.5-live-server-amd64.iso"  # Path relative to ISO_STORAGE
-DISK_STORAGE="vmdisk0"     # Storage for VM disk and EFI
-DISK_SIZE="<size>G"            # Replace as needed
-CORES=2                    # Number of cores
-MEMORY=2048                # Memory in MB
-EFI_STORAGE="vmdisk0"
-BRIDGE="vmbr0"             # Adjust based on your setup
-VLAN_TAG=1               # Desired VLAN
-NUM=${DISK_SIZE%G}         # Extract numeric portion of $DISK_SIZE
-NUM_MINUS_ONE=$((NUM - 1)) # Subtract 1 from $NUM
-NEW_DISK_SIZE="${NUM_MINUS_ONE}G" # New Disk Size
+VMID=
+NAME=""
+DISK_SIZE=$DEFAULT_DISK_SIZE
+CORES=$DEFAULT_CORES
+MEMORY=$DEFAULT_MEMORY
+BRIDGE=$DEFAULT_BRIDGE
+VLAN=$DEFAULT_VLAN
+TAGS=""
 
 # -------------------------------
-# VM Creation
+# Validation
 # -------------------------------
-echo "Creating VM $VMID ($NAME)..."
+if [[ -z "$VMID" || -z "$NAME" ]]; then
+  echo "Usage: $0 <vmid> <name> [disk_size] [cores] [memory] [bridge] [vlan] [tags]"
+  exit 1
+fi
 
-qm create $VMID \
-  --name $NAME \
-  --ostype l26 \
-  --boot order=scsi0 \
-  --scsihw virtio-scsi-single \
-  --agent enabled=1 \
-  --bios ovmf \
-  --efidisk0 ${EFI_STORAGE}:1,efitype=4m,pre-enrolled-keys=1 \
-  --scsi0 $DISK_STORAGE:1,backup=0,discard=on,size=$DISK_SIZE,ssd=1 \
-  --cpu host \
-  --numa 1 \
-  --sockets 1 \
+if ! [[ "$DISK_SIZE" =~ ^[0-9]+$ ]] || [ "$DISK_SIZE" -lt $DEFAULT_DISK_SIZE ]; then
+  echo "Error: Disk size must be a number greater than or equal to ${DEFAULT_DISK_SIZE}"
+  exit 1
+fi
+
+# -------------------------------
+# Clone and configure VM
+# -------------------------------
+echo "Cloning VM template $TEMPLATE_ID to new VM $VMID ($NAME)..."
+
+# Clone template
+qm clone $TEMPLATE_ID $VMID --name $NAME --full yes
+
+# Set VM options
+qm set $VMID \
   --cores $CORES \
   --memory $MEMORY \
+  --net0 virtio,bridge=${BRIDGE},tag=${VLAN} \
   --balloon 0 \
+  --numa 1 \
   --onboot 1 \
+  --agent enabled=1 \
   --tags $TAGS
 
-# Attach ISO
+# Resize disk
+qm resize $VMID scsi0 ${DISK_SIZE}G
+
+# Add cloud-init drive
 qm set $VMID \
-  --ide2 ${ISO_STORAGE}:$ISO_FILE,media=cdrom
+  --ide2 ${DISK_STORAGE}:cloudinit \
+  --boot order=scsi0 \
+  --serial0 socket \
+  --vga serial0
 
-# Resize scsi0
-qm resize $VMID scsi0 +$NEW_DISK_SIZE
-
-# Set Network with VLAN
-qm set $VMID \
-  --net0 virtio,bridge=${BRIDGE},tag=${VLAN_TAG}
-
-# Start the VM
+# Start VM
 qm start $VMID
 
-# Done
-echo "VM $VMID ($NAME) created with VLAN $VLAN_TAG on $BRIDGE."
+echo "VM $VMID ($NAME) has been created and configured."

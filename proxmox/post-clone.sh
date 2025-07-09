@@ -2,6 +2,8 @@
 
 clear
 
+tailscale_auth_key=
+
 # -------------------------------
 # Hostname Configuration (Interactive)
 # -------------------------------
@@ -24,6 +26,25 @@ if grep -q "127.0.1.1" /etc/hosts; then
 else
   echo "127.0.1.1    $NEW_HOSTNAME" | sudo tee -a /etc/hosts > /dev/null
 fi
+
+# -------------------------------
+# Install and Start Tailscale (Interactive)
+# -------------------------------
+
+# Add Tailscale's package signing key and repository:
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
+
+# Install Tailscale
+sudo apt-get update -y
+sudo apt-get install tailscale -y
+
+# Run Tailscale with the NexusEdgeIT Auth Key
+sudo tailscale up --auth-key=$tailscale_auth_key
+
+# -------------------------------
+# END Install and Start Tailscale
+# -------------------------------
 
 # -------------------------------
 # Netplan Configuration (Interactive)
@@ -76,25 +97,6 @@ echo "Disabling cloud-init network configuration..."
 
 sudo mkdir -p /etc/cloud/cloud.cfg.d
 echo "network: {config: disabled}" | sudo tee /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg > /dev/null
-
-# -------------------------------
-# Install and Start Tailscale (Interactive)
-# -------------------------------
-
-# Add Tailscale's package signing key and repository:
-curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg | sudo tee /usr/share/keyrings/tailscale-archive-keyring.gpg >/dev/null
-curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list | sudo tee /etc/apt/sources.list.d/tailscale.list
-
-# Install Tailscale
-sudo apt-get update -y
-sudo apt-get install tailscale -y
-
-# Run Tailscale with the NexusEdgeIT Auth Key
-sudo tailscale up --auth-key=
-
-# -------------------------------
-# END Install and Start Tailscale
-# -------------------------------
 
 # -------------------------------
 # Regenerate SSH Host Keys

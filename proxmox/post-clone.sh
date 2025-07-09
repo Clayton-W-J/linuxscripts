@@ -1,9 +1,3 @@
-#!/bin/bash
-
-# This is a script to finalize Ubuntu VM configuration in Proxmox
-
-clear
-
 # -------------------------------
 # Hostname Configuration (Interactive)
 # -------------------------------
@@ -28,14 +22,6 @@ else
 fi
 
 # -------------------------------
-# Regenerate SSH Host Keys
-# -------------------------------
-echo ""
-echo "Regenerating SSH host keys..."
-sudo /usr/bin/ssh-keygen -A
-sudo systemctl restart sshd
-
-# -------------------------------
 # Netplan Configuration (Interactive)
 # -------------------------------
 echo ""
@@ -44,29 +30,70 @@ echo "=== Netplan Static IP Configuration ==="
 read -rp "Enter network interface name (e.g., ens18): " NET_IFACE
 read -rp "Enter desired static IP address with CIDR (e.g., 192.168.1.50/24): " STATIC_IP
 read -rp "Enter default gateway (e.g., 192.168.1.1): " GATEWAY
-read -rp "Enter DNS servers (comma-separated, e.g., 1.1.1.1,8.8.8.8): " DNS
+read -rp "Enter DNS servers (comma-separated, e.g., 1.1.1.1,8.8.8.8): " DNS_RAW
 
-NETPLAN_FILE="/etc/netplan/01-netcfg.yaml"
+# Convert comma-separated DNS into YAML list
+IFS=',' read -ra DNS_ARRAY <<< "$DNS_RAW"
+
+NETPLAN_FILE="/etc/netplan/50-cloud-init.yaml"
 
 echo "Backing up existing Netplan config to ${NETPLAN_FILE}.bak..."
 sudo cp "$NETPLAN_FILE" "${NETPLAN_FILE}.bak"
 
 echo "Writing new Netplan config..."
-cat <<EOF | sudo tee "$NETPLAN_FILE" > /dev/null
-network:
-  version: 2
-  ethernets:
-    $NET_IFACE:
-      dhcp4: no
-      addresses:
-        - $STATIC_IP
-      gateway4: $GATEWAY
-      nameservers:
-        addresses: [${DNS// /}]
-EOF
+{
+  echo "network:"
+  echo "  version: 2"
+  echo "  ethernets:"
+  echo "    $NET_IFACE:"
+  echo "      addresses:"
+  echo "        - $STATIC_IP"
+  echo "      nameservers:"
+  echo "        addresses:"
+  for dns in "${DNS_ARRAY[@]}"; do
+    echo "          - $dns"
+  done
+  echo "        search: []"
+  echo "      routes:"
+  echo "        - to: default"
+  echo "          via: $GATEWAY"
+} | sudo tee "$NETPLAN_FILE" > /dev/null
 
 echo "Applying Netplan changes..."
 sudo netplan apply
+
+
+# -------------------------------
+# Install and Start Tailscale (Interactive)
+# -------------------------------
+
+# Add Tailscale's package signing key and repository:
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg | sudo tee /usr/share/keyrings/>
+curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list | sudo tee /etc/apt/>
+
+
+# Install Tailscale
+sudo apt-get update -y
+sudo apt-get install tailscale -y
+
+# Run Tailscale with the NexusEdgeIT Auth Key
+sudo tailscale up --auth-key=
+
+# -------------------------------
+# END Install and Start Tailscale
+# -------------------------------
+
+# -------------------------------
+# Regenerate SSH Host Keys
+# -------------------------------
+echo ""
+echo "Regenerating SSH host keys..."
+sudo /usr/bin/ssh-keygen -A
+sudo systemctl restart sshd
+
+# -------------------------------
+# END Regenerate SSH Host Keys
+# -------------------------------
 
 echo ""
 echo "✅ Configuration complete!"

@@ -1,5 +1,3 @@
-#!/bin/bash
-
 # -------------------------------
 # Netplan Configuration (Interactive)
 # -------------------------------
@@ -43,3 +41,11 @@ echo "Writing new Netplan config to $NETPLAN_FILE..."
 sudo mv "$TMP_NETPLAN" "$NETPLAN_FILE"
 echo "Applying Netplan changes..."
 sudo netplan apply
+
+# -------------------------------
+# Disable cloud-init network config
+# -------------------------------
+echo "Disabling cloud-init network configuration..."
+
+sudo mkdir -p /etc/cloud/cloud.cfg.d
+echo "network: {config: disabled}" | sudo tee /etc/cloud/cloud.cfg.d/99-disable-network-config.cfg > /dev/null

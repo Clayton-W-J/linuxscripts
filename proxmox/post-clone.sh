@@ -1,5 +1,7 @@
 #!/bin/bash
 
+clear
+
 # -------------------------------
 # Hostname Configuration (Interactive)
 # -------------------------------

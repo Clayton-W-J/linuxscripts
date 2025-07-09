@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# -------------------------------
+# --------------------------------------------------------------------------
 # Default Values
-# -------------------------------
+# --------------------------------------------------------------------------
 TEMPLATE_ID=10000            # ID of your template VM
 DISK_STORAGE="vmdisk0"       # Default Storage device used
 DEFAULT_DISK_SIZE=32         # Default Storage Count in GB (number only for comparison)
@@ -12,9 +12,9 @@ DEFAULT_BRIDGE="vmbr0"       # Default Network Bridge
 DEFAULT_VLAN=1               # Default VLAN
 DEFAULT_TAGS="mgmt"          # Default VM Tag
 
-# -------------------------------
-# Manually Defined VM Options
-# -------------------------------
+# --------------------------------------------------------------------------
+# Manually Defined VM Options (Interactive)
+# --------------------------------------------------------------------------
 VMID=
 NAME=""
 DISK_SIZE=$DEFAULT_DISK_SIZE
@@ -24,9 +24,9 @@ BRIDGE=$DEFAULT_BRIDGE
 VLAN=$DEFAULT_VLAN
 TAGS=""
 
-# -------------------------------
+# --------------------------------------------------------------------------
 # Storage Validation
-# -------------------------------
+# --------------------------------------------------------------------------
 if [[ -z "$VMID" || -z "$NAME" ]]; then
   echo "Usage: $0 <vmid> <name> [disk_size] [cores] [memory] [bridge] [vlan] [tags]"
   exit 1
@@ -37,9 +37,9 @@ if ! [[ "$DISK_SIZE" =~ ^[0-9]+$ ]] || [ "$DISK_SIZE" -lt $DEFAULT_DISK_SIZE ]; 
   exit 1
 fi
 
-# -------------------------------
+# --------------------------------------------------------------------------
 # Clone and configure VM
-# -------------------------------
+# --------------------------------------------------------------------------
 echo "Cloning VM template $TEMPLATE_ID to new VM $VMID ($NAME)..."
 
 # Clone template
@@ -60,7 +60,7 @@ qm set $VMID \
 qm resize $VMID scsi0 ${DISK_SIZE}G
 
 # --------------------------------------------------------------------------
-# Firewall Configuration
+# Firewall Configuration (Interactive)
 # --------------------------------------------------------------------------
 
 FIREWALL_FILE="/etc/pve/firewall/${VMID}.fw"

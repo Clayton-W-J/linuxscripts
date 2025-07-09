@@ -87,29 +87,6 @@ EOF
 
 echo "Firewall configuration for VM $VMID applied."
 
-FIREWALL_FILE="/etc/pve/firewall/${VMID}.fw"
-
-echo "Configuring firewall for VM $VMID..."
-
-# Reset firewall config
-cat > "$FIREWALL_FILE" <<EOF
-[OPTIONS]
-enable: 1
-policy_in: DROP
-policy_out: ACCEPT
-
-[RULES]
-# Default rule example:
-IN ACCEPT -i net0 -source 10.10.10.0/24 -dest 10.10.10.0/24 -log nolog
-
-# Custom rules can be added below:
-EOF
-
-# Example: Add custom firewall rules here if desired
-# echo "IN ACCEPT -p tcp --dport 22 -log info" >> "$FIREWALL_FILE"
-
-echo "Firewall configuration for VM $VMID applied."
-
 # Start VM
 qm start $VMID
 

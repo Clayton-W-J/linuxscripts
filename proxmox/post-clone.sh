@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # -------------------------------
 # Hostname Configuration (Interactive)
 # -------------------------------
@@ -32,15 +34,16 @@ read -rp "Enter desired static IP address with CIDR (e.g., 192.168.1.50/24): " S
 read -rp "Enter default gateway (e.g., 192.168.1.1): " GATEWAY
 read -rp "Enter DNS servers (comma-separated, e.g., 1.1.1.1,8.8.8.8): " DNS_RAW
 
-# Convert comma-separated DNS into YAML list
 IFS=',' read -ra DNS_ARRAY <<< "$DNS_RAW"
 
 NETPLAN_FILE="/etc/netplan/50-cloud-init.yaml"
+TMP_NETPLAN="/tmp/netplan.$$"
 
 echo "Backing up existing Netplan config to ${NETPLAN_FILE}.bak..."
 sudo cp "$NETPLAN_FILE" "${NETPLAN_FILE}.bak"
 
-echo "Writing new Netplan config..."
+echo "Generating new Netplan config..."
+
 {
   echo "network:"
   echo "  version: 2"
@@ -57,11 +60,12 @@ echo "Writing new Netplan config..."
   echo "      routes:"
   echo "        - to: default"
   echo "          via: $GATEWAY"
-} | sudo tee "$NETPLAN_FILE" > /dev/null
+} > "$TMP_NETPLAN"
 
+echo "Writing new Netplan config to $NETPLAN_FILE..."
+sudo mv "$TMP_NETPLAN" "$NETPLAN_FILE"
 echo "Applying Netplan changes..."
 sudo netplan apply
-
 
 # -------------------------------
 # Install and Start Tailscale (Interactive)
@@ -70,7 +74,6 @@ sudo netplan apply
 # Add Tailscale's package signing key and repository:
 curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.noarmor.gpg | sudo tee /usr/share/keyrings/>
 curl -fsSL https://pkgs.tailscale.com/stable/ubuntu/jammy.tailscale-keyring.list | sudo tee /etc/apt/>
-
 
 # Install Tailscale
 sudo apt-get update -y

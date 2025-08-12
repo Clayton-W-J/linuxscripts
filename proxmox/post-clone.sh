@@ -88,6 +88,8 @@ echo "Generating new Netplan config..."
 echo "Writing new Netplan config to $NETPLAN_FILE..."
 sudo mv "$TMP_NETPLAN" "$NETPLAN_FILE"
 echo "Applying Netplan changes..."
+sudo chmod 600 $NETPLAN_FILE
+sudo chown root: $NETPLAN_FILE
 sudo netplan apply
 
 # -------------------------------

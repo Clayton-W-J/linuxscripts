@@ -92,14 +92,6 @@ fi
 green_echo "Setting timezone to America/Chicago..."
 sudo timedatectl set-timezone America/Chicago
 
-# Set the hostname
-read -p "$(green_echo 'Enter the hostname you want to set: ')" NEW_HOSTNAME
-green_echo "Setting hostname to $NEW_HOSTNAME..."
-sudo hostnamectl set-hostname "$NEW_HOSTNAME"
-# Update /etc/hosts
-green_echo "Updating /etc/hosts file..."
-sudo sed -i "s/127.0.1.1.*/127.0.1.1\t$NEW_HOSTNAME/g" /etc/hosts
-
 # Set a secure root password
 green_echo "Generating a secure root password..."
 ROOT_PASSWORD=$(< /dev/urandom tr -dc 'A-Z' | head -c 3)$(< /dev/urandom tr -dc '@#$%&*' | head -c 3)$(< /dev/urandom tr -dc 'a-z0-9' | head -c 12 | shuf | tr -d '\n')

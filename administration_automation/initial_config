@@ -18,23 +18,6 @@ exec > >(tee -a "$LOG_FILE") 2>&1
 
 clear
 
-# Install Tailscale and run it
-if [ ! -f /usr/bin/tailscale ]; then
-    read -p "Would you like to install Tailscale? (y/n): " INSTALL_TAILSCALE
-    if [[ "$INSTALL_TAILSCALE" =~ ^[Yy]$ ]]; then
-        {
-            green_echo "Installing and starting Tailscale..."
-            curl -fsSL https://tailscale.com/install.sh | sh
-        } >> "$LOG_FILE" 2>&1
-        sudo tailscale up
-        green_echo "Tailscale has been installed and started!"
-    else
-        green_echo "Tailscale installation skipped."
-    fi
-else
-    green_echo "Tailscale is already installed."
-fi
-
 # Install the Proxmox Qemu Guest Agent
 if [ ! -f /usr/sbin/qemu-ga ]; then
     read -p "Would you like to install the Proxmox QEMU Guest Agent? (y/n): " INSTALL_QEMU

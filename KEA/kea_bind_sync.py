@@ -7,13 +7,13 @@ from pathlib import Path
 from datetime import datetime
 
 # Paths
-LEASES_FILE = Path("/var/lib/kea/kea-leases4.csv")
-FWD_ZONE_FILE = Path("/etc/bind/db.homelab.lan")
-REV_ZONE_FILE = Path("/etc/bind/db.192")
+LEASES_FILE = Path("<path/to/lease/file>")
+FWD_ZONE_FILE = Path("<path/to/fwd/zone/file>")
+REV_ZONE_FILE = Path("<path/to/rev/zone/file>")
 
 # Network
-NETWORK = ipaddress.ip_network("192.168.68.0/24")
-DOMAIN = "homelab.lan."
+NETWORK = ipaddress.ip_network("<subnet>")
+DOMAIN = "<domain name>"
 
 # Regex to find/replace SOA serial (the first number in the SOA line)
 SOA_SERIAL_RE = re.compile(r"(^\s*@\s+IN\s+SOA\s+.+?\(\s*)(\d+)(\s*; Serial)", re.MULTILINE)

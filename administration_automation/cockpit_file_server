@@ -4,10 +4,7 @@
 # Install Cockpit
 sudo apt install cockpit
 
-# Cockpit Identities Direct from Deb
-curl -LO https://github.com/45Drives/cockpit-identities/releases/download/v0.1.12/cockpit-identities_0.1.12-1focal_all.deb
-sudo apt install ./cockpit-identities_0.1.12-1focal_all.deb
-
-# Cockpit File Sharing Direct from Deb
-curl -LO https://github.com/45Drives/cockpit-file-sharing/releases/download/v4.2.8/cockpit-file-sharing_4.2.8-1focal_all.deb
-sudo apt install ./cockpit-file-sharing_4.2.8-1focal_all.deb
+# Setup Cockpit-File-Sharing APT Repository
+curl -sSL https://repo.45drives.com/setup | sudo bash
+sudo apt update
+sudo apt install cockpit-file-sharing

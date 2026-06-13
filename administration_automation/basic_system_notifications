@@ -1,49 +1,136 @@
 #!/bin/bash
-
-# Variables
-TO="<your_email_here>"
+# =============================================================================
+# Weekly System Status Report with Email
+# =============================================================================
+#
+# Description:
+#   This script collects system status information including uptime, disk
+#   usage, memory usage, and RAID status, then emails the report to a
+#   configured recipient. Designed to be run periodically (e.g., weekly)
+#   as part of routine system monitoring.
+#
+#   The script will:
+#   1. Collect system uptime and load average
+#   2. Collect disk usage for specified filesystems
+#   3. Collect memory usage statistics
+#   4. Collect RAID array status
+#   5. Email the results to the configured recipient
+#
+# Requirements:
+#   - Root privileges (required for mdadm --detail)
+#   - sendemail utility installed (apt-get install sendemail or equivalent)
+#   - mail utility installed (apt-get install mailutils or equivalent)
+#
+# Usage:
+#   1. Configure the variables in the "Configuration" section below:
+#      - SMTP_SERVER, SMTP_PORT, SMTP_USERNAME, SMTP_PASSWORD
+#      - FROM_EMAIL, TO_EMAIL
+#      - DISK_DEVICES, RAID_ARRAY
+#   2. Make the script executable: chmod +x weekly_system_status.sh
+#   3. Run as root: sudo ./weekly_system_status.sh
+#
+# Notes:
+#   - DISK_DEVICES should be space-separated list of device paths
+#   - RAID_ARRAY should be the device path (e.g., /dev/md0)
+#   - Schedule with cron for automated weekly execution:
+#     0 1 * * 0 /path/to/weekly_system_status.sh >> /var/log/cron_status.log 2>&1
+#
+# =============================================================================
+# ==========================================
+# Configuration
+# ==========================================
+SMTP_SERVER="smtp.example.com"
+SMTP_PORT="587"
+SMTP_USERNAME="your_email@example.com"
+SMTP_PASSWORD="your_password"
+FROM_NAME="My Server"
+FROM_EMAIL="your_email@example.com"
+TO_EMAIL="johndoe@example.com"
 HOSTNAME=$(hostname)
 DATE=$(date +"%m-%d-%Y %I:%M:%S %p")
+LOG_FILE="/var/log/system_status.log"
 STATUS_FILE="/tmp/system_status.txt"
-
-# Create a status report with formatting
+# Disk devices to monitor (space-separated)
+# Examples: "/dev/mapper/vg--main-lv--data" or "/dev/sda1"
+DISK_DEVICES="/dev/mapper/vg--main-lv--data /dev/sda1"
+# RAID array to check (e.g., "/dev/md0")
+# Leave empty to skip RAID check
+RAID_ARRAY="/dev/mdX"
+# Maximum lines to keep in the status file before truncation
+MAX_LINES=100
+# ==========================================
+# Main Script
+# ==========================================
+# --- Collect System Information ---
 {
-  echo "System Status Report for $HOSTNAME - $DATE"
+  echo "Weekly System Status Report for $HOSTNAME - $DATE"
   echo "=========================================="
-  echo
-  echo "=====Uptime:======"
-  printf " %-15s %s\n" "Current Time:" "$(date +"%I:%M:%S %p")"
+  echo ""
+  echo "===== Uptime: ====="
+  printf " %-15s %s\n" "Current Time:" "$(date +'%I:%M:%S %p')"
   printf " %-19s %s\n" "Uptime:" "$(uptime -p)"
   printf " %-15s %s\n" "Load Average:" "$(uptime | awk -F'load average:' '{print $2}' | xargs)"
-  echo
-  echo "=====Disk Usage:====="
-  # Print the header once
-  printf "%-65s %-10s %-10s %-10s %-10s\n" "Filesystem" "Size" "Used" "Avail" "Use%"
-  # Filter and format specific filesystems
-df -h | awk '
-    $1 == "/dev/mapper/<your_device_here>" {
-        printf "%-45s %-10s %-11s %-10s %-10s\n", $1, $2, $3, $4, $5
+  echo ""
+  echo "===== Disk Usage: ====="
+  # Print the header
+  printf "%-45s %-10s %-10s %-10s %-10s\n" "Filesystem" "Size" "Used" "Avail" "Use%"
+  # Filter and format specified filesystems
+  df -h | awk -v devices="$DISK_DEVICES" '
+    BEGIN {
+      # Split devices into an array
+      num_devices = split(devices, dev_array)
     }
-    $1 == "/dev/<your_device_here>" {
-        printf "%-63s %-11s %-11s %-12s %-11s\n", $1, $2, $3, $4, $5
+    {
+      for (i = 1; i <= num_devices; i++) {
+        if ($1 == dev_array[i]) {
+          printf "%-45s %-10s %-10s %-10s %-10s\n", $1, $2, $3, $4, $5
+        }
+      }
     }
-'
-  echo
-  echo "=====Memory Usage:======"
+  '
+  echo ""
+  echo "===== Memory Usage: ====="
   printf "%-15s %-15s %-15s %-15s %-15s %-15s\n" "Total" "Used" "Free" "Shared" "Buff/Cache" "Available"
   free -h | awk 'NR==2 { printf "%-15s %-13s %-16s %-16s %-18s %-18s\n", $2, $3, $4, $5, $6, $7 }'
-  echo
-  echo "=====RAID Status:======"
-  RAID_INFO=$(sudo mdadm --detail /dev/<your_array_here> | grep -E '/dev/md127|State :|Raid Level :|Array Size :|Raid Devices :|Persistence :|Number|active sync' 2>/dev/null)
-  if [[ -z "$RAID_INFO" ]]; then
-    echo " No RAID arrays detected."
+  echo ""
+  echo "===== RAID Status: ====="
+  if [ -z "$RAID_ARRAY" ]; then
+    echo "RAID check disabled."
   else
-    echo "$RAID_INFO"
+    RAID_INFO=$(sudo mdadm --detail "$RAID_ARRAY" 2>/dev/null | grep -E 'State :|Raid Level :|Array Size :|Raid Devices :|Persistence :|Number|active sync')
+    if [[ -z "$RAID_INFO" ]]; then
+      echo " No RAID array found at $RAID_ARRAY."
+    else
+      echo "$RAID_INFO"
+    fi
   fi
-} > "$STATUS_FILE"
-
-# Send the report via email
-mail -s "Weekly System Status Report for $HOSTNAME" "$TO" < "$STATUS_FILE"
-
-# Clean up
-rm "$STATUS_FILE"
+} | tee "$STATUS_FILE"
+# --- Truncate if too large ---
+if [ "$(wc -l < "$STATUS_FILE")" -gt "$MAX_LINES" ]; then
+  tail -n "$MAX_LINES" "$STATUS_FILE" > "${STATUS_FILE}_trimmed"
+  mv "${STATUS_FILE}_trimmed" "$STATUS_FILE"
+fi
+# --- Append to log file ---
+cat "$STATUS_FILE" >> "$LOG_FILE"
+echo "" >> "$LOG_FILE"
+# --- Send Email with Results ---
+echo "Sending email to $TO_EMAIL..."
+# Read the status file as the email body
+BODY=$(cat "$STATUS_FILE")
+sendemail -v \
+    -o tls=yes \
+    -s "$SMTP_SERVER:$SMTP_PORT" \
+    -f "$FROM_EMAIL" \
+    -t "$TO_EMAIL" \
+    -xu "$SMTP_USERNAME" \
+    -xp "$SMTP_PASSWORD" \
+    -u "Weekly System Status Report for $HOSTNAME - $DATE" \
+    -m "$BODY"
+if [ $? -eq 0 ]; then
+    echo "Email sent successfully!"
+else
+    echo "Failed to send email."
+fi
+# --- Cleanup ---
+rm -f "$STATUS_FILE"
+echo "Check complete."

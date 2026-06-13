@@ -1,6 +1,9 @@
 #!/bin/bash
 # This script is intended to be used with Ubuntu 22.04LTS and installs cockpit and the 45 drives modules for managing Samba and NFS shares
 
+# Update Apt Repositories
+sudo apt update -y
+
 # Install Cockpit
 sudo apt install cockpit
 
